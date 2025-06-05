@@ -1,3 +1,5 @@
+package me.wphillips.fsmedit;
+
 import javax.swing.*;
 
 public class GraphEditor {

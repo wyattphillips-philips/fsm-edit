@@ -1,3 +1,5 @@
+package me.wphillips.fsmedit;
+
 public class Edge {
     private Node from;
     private Node to;
