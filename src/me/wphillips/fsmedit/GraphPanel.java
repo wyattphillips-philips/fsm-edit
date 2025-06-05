@@ -9,6 +9,7 @@ import java.util.List;
 public class GraphPanel extends JPanel {
     private final List<Node> nodes = new ArrayList<>();
     private final List<Edge> edges = new ArrayList<>();
+    private Node startNode;
 
     public void addNode(Node node) {
         nodes.add(node);
@@ -16,6 +17,11 @@ public class GraphPanel extends JPanel {
 
     public void addEdge(Edge edge) {
         edges.add(edge);
+    }
+
+    public void setStartNode(Node node) {
+        this.startNode = node;
+        repaint();
     }
 
     @Override
@@ -40,7 +46,11 @@ public class GraphPanel extends JPanel {
         int r = n.getRadius();
         int x = n.getX() - r;
         int y = n.getY() - r;
-        g2.setColor(Color.WHITE);
+        if (n == startNode) {
+            g2.setColor(new Color(144, 238, 144)); // light green
+        } else {
+            g2.setColor(Color.WHITE);
+        }
         g2.fillOval(x, y, 2 * r, 2 * r);
         g2.setColor(Color.BLACK);
         g2.drawOval(x, y, 2 * r, 2 * r);
