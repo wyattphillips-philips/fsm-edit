@@ -13,6 +13,7 @@ public class GraphEditor {
             Node b = new Node(250, 100, 30, "B");
             panel.addNode(a);
             panel.addNode(b);
+            panel.setStartNode(a);
             panel.addEdge(new Edge(a, b));
 
             frame.add(panel);
