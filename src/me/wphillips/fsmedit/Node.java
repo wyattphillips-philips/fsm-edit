@@ -41,6 +41,17 @@ public class Node {
     }
 
     /**
+     * Move the node relative to its current position.
+     *
+     * @param dx change in x-coordinate
+     * @param dy change in y-coordinate
+     */
+    public void moveBy(int dx, int dy) {
+        this.x += dx;
+        this.y += dy;
+    }
+
+    /**
      * Check if a point lies within this node.
      *
      * @param px x-coordinate of the point

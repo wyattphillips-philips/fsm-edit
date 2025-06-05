@@ -13,6 +13,8 @@ public class GraphPanel extends JPanel {
     private final List<Edge> edges = new ArrayList<>();
     private Node startNode;
     private Node draggedNode;
+    private int lastMouseX;
+    private int lastMouseY;
 
     public GraphPanel() {
         MouseAdapter handler = new MouseAdapter() {
@@ -24,6 +26,8 @@ public class GraphPanel extends JPanel {
                 for (Node n : nodes) {
                     if (n.contains(e.getX(), e.getY())) {
                         draggedNode = n;
+                        lastMouseX = e.getX();
+                        lastMouseY = e.getY();
                         break;
                     }
                 }
@@ -37,7 +41,11 @@ public class GraphPanel extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (draggedNode != null) {
-                    draggedNode.setPosition(e.getX(), e.getY());
+                    int dx = e.getX() - lastMouseX;
+                    int dy = e.getY() - lastMouseY;
+                    draggedNode.moveBy(dx, dy);
+                    lastMouseX = e.getX();
+                    lastMouseY = e.getY();
                     repaint();
                 }
             }
