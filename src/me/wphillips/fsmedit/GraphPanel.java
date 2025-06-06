@@ -15,6 +15,8 @@ public class GraphPanel extends JPanel {
     private Node draggedNode;
     private int lastMouseX;
     private int lastMouseY;
+    private Node edgeStart;
+    private Node tempEdgeNode;
     private final GraphPopupMenu popupMenu;
 
     public GraphPanel() {
@@ -26,9 +28,15 @@ public class GraphPanel extends JPanel {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null) {
-                        draggedNode = hit;
-                        lastMouseX = e.getX();
-                        lastMouseY = e.getY();
+                        if (e.isControlDown()) {
+                            edgeStart = hit;
+                            tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
+                            repaint();
+                        } else {
+                            draggedNode = hit;
+                            lastMouseX = e.getX();
+                            lastMouseY = e.getY();
+                        }
                     }
                 } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     Node hit = getNodeAt(e.getX(), e.getY());
@@ -39,16 +47,29 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (e.isPopupTrigger()) {
+                if (edgeStart != null) {
                     Node hit = getNodeAt(e.getX(), e.getY());
-                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
+                    if (hit != null && hit != edgeStart) {
+                        addEdge(new Edge(edgeStart, hit));
+                    }
+                    edgeStart = null;
+                    tempEdgeNode = null;
+                    repaint();
+                } else {
+                    if (e.isPopupTrigger()) {
+                        Node hit = getNodeAt(e.getX(), e.getY());
+                        popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
+                    }
+                    draggedNode = null;
                 }
-                draggedNode = null;
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (draggedNode != null) {
+                if (edgeStart != null) {
+                    tempEdgeNode.setPosition(e.getX(), e.getY());
+                    repaint();
+                } else if (draggedNode != null) {
                     int dx = e.getX() - lastMouseX;
                     int dy = e.getY() - lastMouseY;
                     draggedNode.moveBy(dx, dy);
@@ -119,6 +140,9 @@ public class GraphPanel extends JPanel {
         for (Edge e : edges) {
             drawArrow(g2, e.getFrom(), e.getTo());
         }
+        if (edgeStart != null && tempEdgeNode != null) {
+            drawArrow(g2, edgeStart, new Point(tempEdgeNode.getX(), tempEdgeNode.getY()));
+        }
 
         // Draw nodes on top
         for (Node n : nodes) {
@@ -152,10 +176,24 @@ public class GraphPanel extends JPanel {
         drawArrowHead(g2, p1, p2);
     }
 
+    private void drawArrow(Graphics2D g2, Node from, Point to) {
+        Point p1 = boundaryPoint(from, to.x, to.y);
+        Point p2 = new Point(to.x, to.y);
+        g2.drawLine(p1.x, p1.y, p2.x, p2.y);
+        drawArrowHead(g2, p1, p2);
+    }
+
     private Point boundaryPoint(Node from, Node to) {
-        double dx = to.getX() - from.getX();
-        double dy = to.getY() - from.getY();
+        return boundaryPoint(from, to.getX(), to.getY());
+    }
+
+    private Point boundaryPoint(Node from, int toX, int toY) {
+        double dx = toX - from.getX();
+        double dy = toY - from.getY();
         double dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist == 0) {
+            return new Point(from.getX(), from.getY());
+        }
         double ratio = from.getRadius() / dist;
         int x = (int) Math.round(from.getX() + dx * ratio);
         int y = (int) Math.round(from.getY() + dy * ratio);
