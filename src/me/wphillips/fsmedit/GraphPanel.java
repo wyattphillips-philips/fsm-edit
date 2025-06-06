@@ -15,26 +15,34 @@ public class GraphPanel extends JPanel {
     private Node draggedNode;
     private int lastMouseX;
     private int lastMouseY;
+    private final GraphPopupMenu popupMenu;
 
     public GraphPanel() {
+        popupMenu = new GraphPopupMenu(this);
+
         MouseAdapter handler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (!SwingUtilities.isLeftMouseButton(e)) {
-                    return;
-                }
-                for (Node n : nodes) {
-                    if (n.contains(e.getX(), e.getY())) {
-                        draggedNode = n;
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    if (hit != null) {
+                        draggedNode = hit;
                         lastMouseX = e.getX();
                         lastMouseY = e.getY();
-                        break;
                     }
+                } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
+                    return;
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
+                }
                 draggedNode = null;
             }
 
@@ -59,8 +67,40 @@ public class GraphPanel extends JPanel {
         nodes.add(node);
     }
 
+    /**
+     * Get the current number of nodes in the graph.
+     */
+    public int getNodeCount() {
+        return nodes.size();
+    }
+
     public void addEdge(Edge edge) {
         edges.add(edge);
+    }
+
+    /**
+     * Remove a node and any edges that reference it.
+     */
+    public void removeNode(Node node) {
+        nodes.remove(node);
+        edges.removeIf(e -> e.getFrom() == node || e.getTo() == node);
+        if (startNode == node) {
+            startNode = null;
+        }
+        repaint();
+    }
+
+    /**
+     * Return the topmost node at the given coordinates, or {@code null}.
+     */
+    private Node getNodeAt(int x, int y) {
+        for (int i = nodes.size() - 1; i >= 0; i--) {
+            Node n = nodes.get(i);
+            if (n.contains(x, y)) {
+                return n;
+            }
+        }
+        return null;
     }
 
     public void setStartNode(Node node) {
