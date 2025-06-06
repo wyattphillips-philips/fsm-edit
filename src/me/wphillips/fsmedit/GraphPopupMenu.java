@@ -10,6 +10,8 @@ public class GraphPopupMenu extends JPopupMenu {
     private final GraphPanel panel;
     private int x;
     private int y;
+    private Node targetNode;
+    private final JMenuItem deleteNodeItem;
 
     public GraphPopupMenu(GraphPanel panel) {
         this.panel = panel;
@@ -21,6 +23,14 @@ public class GraphPopupMenu extends JPopupMenu {
             panel.repaint();
         });
         add(addNodeItem);
+
+        deleteNodeItem = new JMenuItem("Delete Node");
+        deleteNodeItem.addActionListener(e -> {
+            if (targetNode != null) {
+                panel.removeNode(targetNode);
+            }
+        });
+        add(deleteNodeItem);
     }
 
     /**
@@ -28,8 +38,22 @@ public class GraphPopupMenu extends JPopupMenu {
      * for later use by menu actions.
      */
     public void showMenu(Component invoker, int x, int y) {
+        showMenu(invoker, x, y, null);
+    }
+
+    /**
+     * Display the menu and configure visibility of actions based on context.
+     *
+     * @param invoker component requesting the menu
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @param node node under the cursor or {@code null}
+     */
+    public void showMenu(Component invoker, int x, int y, Node node) {
         this.x = x;
         this.y = y;
+        this.targetNode = node;
+        deleteNodeItem.setVisible(node != null);
         show(invoker, x, y);
     }
 }

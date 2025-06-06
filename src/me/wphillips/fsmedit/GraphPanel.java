@@ -24,16 +24,15 @@ public class GraphPanel extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    for (Node n : nodes) {
-                        if (n.contains(e.getX(), e.getY())) {
-                            draggedNode = n;
-                            lastMouseX = e.getX();
-                            lastMouseY = e.getY();
-                            break;
-                        }
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    if (hit != null) {
+                        draggedNode = hit;
+                        lastMouseX = e.getX();
+                        lastMouseY = e.getY();
                     }
                 } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
-                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY());
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     return;
                 }
             }
@@ -41,7 +40,8 @@ public class GraphPanel extends JPanel {
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY());
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                 }
                 draggedNode = null;
             }
@@ -76,6 +76,31 @@ public class GraphPanel extends JPanel {
 
     public void addEdge(Edge edge) {
         edges.add(edge);
+    }
+
+    /**
+     * Remove a node and any edges that reference it.
+     */
+    public void removeNode(Node node) {
+        nodes.remove(node);
+        edges.removeIf(e -> e.getFrom() == node || e.getTo() == node);
+        if (startNode == node) {
+            startNode = null;
+        }
+        repaint();
+    }
+
+    /**
+     * Return the topmost node at the given coordinates, or {@code null}.
+     */
+    private Node getNodeAt(int x, int y) {
+        for (int i = nodes.size() - 1; i >= 0; i--) {
+            Node n = nodes.get(i);
+            if (n.contains(x, y)) {
+                return n;
+            }
+        }
+        return null;
     }
 
     public void setStartNode(Node node) {
