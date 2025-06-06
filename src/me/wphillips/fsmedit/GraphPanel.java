@@ -3,6 +3,8 @@ package me.wphillips.fsmedit;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +12,48 @@ public class GraphPanel extends JPanel {
     private final List<Node> nodes = new ArrayList<>();
     private final List<Edge> edges = new ArrayList<>();
     private Node startNode;
+    private Node draggedNode;
+    private int lastMouseX;
+    private int lastMouseY;
+
+    public GraphPanel() {
+        MouseAdapter handler = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
+                }
+                for (Node n : nodes) {
+                    if (n.contains(e.getX(), e.getY())) {
+                        draggedNode = n;
+                        lastMouseX = e.getX();
+                        lastMouseY = e.getY();
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                draggedNode = null;
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (draggedNode != null) {
+                    int dx = e.getX() - lastMouseX;
+                    int dy = e.getY() - lastMouseY;
+                    draggedNode.moveBy(dx, dy);
+                    lastMouseX = e.getX();
+                    lastMouseY = e.getY();
+                    repaint();
+                }
+            }
+        };
+
+        addMouseListener(handler);
+        addMouseMotionListener(handler);
+    }
 
     public void addNode(Node node) {
         nodes.add(node);
