@@ -15,26 +15,34 @@ public class GraphPanel extends JPanel {
     private Node draggedNode;
     private int lastMouseX;
     private int lastMouseY;
+    private final GraphPopupMenu popupMenu;
 
     public GraphPanel() {
+        popupMenu = new GraphPopupMenu(this);
+
         MouseAdapter handler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (!SwingUtilities.isLeftMouseButton(e)) {
-                    return;
-                }
-                for (Node n : nodes) {
-                    if (n.contains(e.getX(), e.getY())) {
-                        draggedNode = n;
-                        lastMouseX = e.getX();
-                        lastMouseY = e.getY();
-                        break;
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    for (Node n : nodes) {
+                        if (n.contains(e.getX(), e.getY())) {
+                            draggedNode = n;
+                            lastMouseX = e.getX();
+                            lastMouseY = e.getY();
+                            break;
+                        }
                     }
+                } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY());
+                    return;
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY());
+                }
                 draggedNode = null;
             }
 
@@ -57,6 +65,13 @@ public class GraphPanel extends JPanel {
 
     public void addNode(Node node) {
         nodes.add(node);
+    }
+
+    /**
+     * Get the current number of nodes in the graph.
+     */
+    public int getNodeCount() {
+        return nodes.size();
     }
 
     public void addEdge(Edge edge) {
