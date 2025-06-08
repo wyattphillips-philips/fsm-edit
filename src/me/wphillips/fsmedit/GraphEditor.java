@@ -8,6 +8,8 @@ public class GraphEditor {
             JFrame frame = new JFrame("FSM Graph Editor");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+            frame.setJMenuBar(new GraphMenuBar());
+
             GraphPanel panel = new GraphPanel();
             Node a = new Node(100, 100, 30, "A");
             Node b = new Node(250, 100, 30, "B");
@@ -21,7 +23,7 @@ public class GraphEditor {
             panel.addEdge(new Edge(c, a));
 
             frame.add(panel);
-            frame.setSize(400, 300);
+            frame.setSize(800, 600);
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
