@@ -8,15 +8,7 @@ public class GraphEditor {
             JFrame frame = new JFrame("FSM Graph Editor");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            JMenuBar menuBar = new JMenuBar();
-            JMenu fileMenu = new JMenu("File");
-            JMenuItem exitItem = new JMenuItem("Exit");
-            exitItem.addActionListener(e -> System.exit(0));
-            fileMenu.add(exitItem);
-            JMenu editMenu = new JMenu("Edit");
-            menuBar.add(fileMenu);
-            menuBar.add(editMenu);
-            frame.setJMenuBar(menuBar);
+            frame.setJMenuBar(new GraphMenuBar());
 
             GraphPanel panel = new GraphPanel();
             Node a = new Node(100, 100, 30, "A");
