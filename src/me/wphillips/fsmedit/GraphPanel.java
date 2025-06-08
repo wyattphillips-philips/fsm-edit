@@ -205,7 +205,7 @@ public class GraphPanel extends JPanel {
         g2.fillOval(x, y, 2 * r, 2 * r);
         Stroke oldStroke = g2.getStroke();
         if (edgeStart != null && n == edgeTarget) {
-            g2.setColor(Color.ORANGE);
+            g2.setColor(new Color(255, 94, 14));
             g2.setStroke(new BasicStroke(2f));
         } else if (n == hoveredNode) {
             g2.setColor(Color.BLUE);
