@@ -24,6 +24,22 @@ public class GraphPanel extends JPanel {
     private Node edgeTarget;
     private final GraphPopupMenu popupMenu;
 
+    /**
+     * Update which node is currently hovered and adjust the cursor. The panel
+     * is repainted only when the hovered node actually changes.
+     */
+    private void setHoveredNode(Node node) {
+        if (hoveredNode != node) {
+            hoveredNode = node;
+            if (node != null) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else {
+                setCursor(Cursor.getDefaultCursor());
+            }
+            repaint();
+        }
+    }
+
     public GraphPanel() {
         popupMenu = new GraphPopupMenu(this);
 
@@ -49,14 +65,7 @@ public class GraphPanel extends JPanel {
                     popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     return;
                 }
-                Node hit = getNodeAt(e.getX(), e.getY());
-                hoveredNode = hit;
-                if (hit != null) {
-                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                } else {
-                    setCursor(Cursor.getDefaultCursor());
-                }
-                repaint();
+                setHoveredNode(getNodeAt(e.getX(), e.getY()));
             }
 
             @Override
@@ -77,14 +86,7 @@ public class GraphPanel extends JPanel {
                     }
                     draggedNode = null;
                 }
-                Node hit = getNodeAt(e.getX(), e.getY());
-                hoveredNode = hit;
-                if (hit != null) {
-                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                } else {
-                    setCursor(Cursor.getDefaultCursor());
-                }
-                repaint();
+                setHoveredNode(getNodeAt(e.getX(), e.getY()));
             }
 
             @Override
@@ -110,16 +112,7 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                Node hit = getNodeAt(e.getX(), e.getY());
-                if (hit != hoveredNode) {
-                    hoveredNode = hit;
-                    if (hit != null) {
-                        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                    } else {
-                        setCursor(Cursor.getDefaultCursor());
-                    }
-                    repaint();
-                }
+                setHoveredNode(getNodeAt(e.getX(), e.getY()));
             }
         };
 
