@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.BasicStroke;
+import java.awt.Cursor;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,7 @@ public class GraphPanel extends JPanel {
     private final List<Edge> edges = new ArrayList<>();
     private Node startNode;
     private Node draggedNode;
+    private Node hoveredNode;
     private int lastMouseX;
     private int lastMouseY;
     private Node edgeStart;
@@ -43,6 +47,14 @@ public class GraphPanel extends JPanel {
                     popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     return;
                 }
+                Node hit = getNodeAt(e.getX(), e.getY());
+                hoveredNode = hit;
+                if (hit != null) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                } else {
+                    setCursor(Cursor.getDefaultCursor());
+                }
+                repaint();
             }
 
             @Override
@@ -62,6 +74,14 @@ public class GraphPanel extends JPanel {
                     }
                     draggedNode = null;
                 }
+                Node hit = getNodeAt(e.getX(), e.getY());
+                hoveredNode = hit;
+                if (hit != null) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                } else {
+                    setCursor(Cursor.getDefaultCursor());
+                }
+                repaint();
             }
 
             @Override
@@ -75,6 +95,20 @@ public class GraphPanel extends JPanel {
                     draggedNode.moveBy(dx, dy);
                     lastMouseX = e.getX();
                     lastMouseY = e.getY();
+                    repaint();
+                }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                Node hit = getNodeAt(e.getX(), e.getY());
+                if (hit != hoveredNode) {
+                    hoveredNode = hit;
+                    if (hit != null) {
+                        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    } else {
+                        setCursor(Cursor.getDefaultCursor());
+                    }
                     repaint();
                 }
             }
@@ -160,8 +194,15 @@ public class GraphPanel extends JPanel {
             g2.setColor(Color.WHITE);
         }
         g2.fillOval(x, y, 2 * r, 2 * r);
-        g2.setColor(Color.BLACK);
+        Stroke oldStroke = g2.getStroke();
+        if (n == hoveredNode) {
+            g2.setColor(Color.BLUE);
+            g2.setStroke(new BasicStroke(2f));
+        } else {
+            g2.setColor(Color.BLACK);
+        }
         g2.drawOval(x, y, 2 * r, 2 * r);
+        g2.setStroke(oldStroke);
         // Draw label centered
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(n.getLabel());
