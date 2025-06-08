@@ -21,6 +21,7 @@ public class GraphPanel extends JPanel {
     private int lastMouseY;
     private Node edgeStart;
     private Node tempEdgeNode;
+    private Node edgeTarget;
     private final GraphPopupMenu popupMenu;
 
     public GraphPanel() {
@@ -35,6 +36,7 @@ public class GraphPanel extends JPanel {
                         if (e.isControlDown()) {
                             edgeStart = hit;
                             tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
+                            edgeTarget = null;
                             repaint();
                         } else {
                             draggedNode = hit;
@@ -66,6 +68,7 @@ public class GraphPanel extends JPanel {
                     }
                     edgeStart = null;
                     tempEdgeNode = null;
+                    edgeTarget = null;
                     repaint();
                 } else {
                     if (e.isPopupTrigger()) {
@@ -88,6 +91,12 @@ public class GraphPanel extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 if (edgeStart != null) {
                     tempEdgeNode.setPosition(e.getX(), e.getY());
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    if (hit != null && hit != edgeStart) {
+                        edgeTarget = hit;
+                    } else {
+                        edgeTarget = null;
+                    }
                     repaint();
                 } else if (draggedNode != null) {
                     int dx = e.getX() - lastMouseX;
@@ -195,7 +204,10 @@ public class GraphPanel extends JPanel {
         }
         g2.fillOval(x, y, 2 * r, 2 * r);
         Stroke oldStroke = g2.getStroke();
-        if (n == hoveredNode) {
+        if (edgeStart != null && n == edgeTarget) {
+            g2.setColor(Color.ORANGE);
+            g2.setStroke(new BasicStroke(2f));
+        } else if (n == hoveredNode) {
             g2.setColor(Color.BLUE);
             g2.setStroke(new BasicStroke(2f));
         } else {
