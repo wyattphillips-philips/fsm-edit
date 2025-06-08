@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.BasicStroke;
+import java.awt.Cursor;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,11 +16,29 @@ public class GraphPanel extends JPanel {
     private final List<Edge> edges = new ArrayList<>();
     private Node startNode;
     private Node draggedNode;
+    private Node hoveredNode;
     private int lastMouseX;
     private int lastMouseY;
     private Node edgeStart;
     private Node tempEdgeNode;
+    private Node edgeTarget;
     private final GraphPopupMenu popupMenu;
+
+    /**
+     * Update which node is currently hovered and adjust the cursor. The panel
+     * is repainted only when the hovered node actually changes.
+     */
+    private void setHoveredNode(Node node) {
+        if (hoveredNode != node) {
+            hoveredNode = node;
+            if (node != null) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else {
+                setCursor(Cursor.getDefaultCursor());
+            }
+            repaint();
+        }
+    }
 
     public GraphPanel() {
         popupMenu = new GraphPopupMenu(this);
@@ -31,6 +52,7 @@ public class GraphPanel extends JPanel {
                         if (e.isControlDown()) {
                             edgeStart = hit;
                             tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
+                            edgeTarget = null;
                             repaint();
                         } else {
                             draggedNode = hit;
@@ -43,6 +65,7 @@ public class GraphPanel extends JPanel {
                     popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     return;
                 }
+                setHoveredNode(getNodeAt(e.getX(), e.getY()));
             }
 
             @Override
@@ -54,6 +77,7 @@ public class GraphPanel extends JPanel {
                     }
                     edgeStart = null;
                     tempEdgeNode = null;
+                    edgeTarget = null;
                     repaint();
                 } else {
                     if (e.isPopupTrigger()) {
@@ -62,12 +86,19 @@ public class GraphPanel extends JPanel {
                     }
                     draggedNode = null;
                 }
+                setHoveredNode(getNodeAt(e.getX(), e.getY()));
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (edgeStart != null) {
                     tempEdgeNode.setPosition(e.getX(), e.getY());
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    if (hit != null && hit != edgeStart) {
+                        edgeTarget = hit;
+                    } else {
+                        edgeTarget = null;
+                    }
                     repaint();
                 } else if (draggedNode != null) {
                     int dx = e.getX() - lastMouseX;
@@ -77,6 +108,11 @@ public class GraphPanel extends JPanel {
                     lastMouseY = e.getY();
                     repaint();
                 }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                setHoveredNode(getNodeAt(e.getX(), e.getY()));
             }
         };
 
@@ -160,8 +196,18 @@ public class GraphPanel extends JPanel {
             g2.setColor(Color.WHITE);
         }
         g2.fillOval(x, y, 2 * r, 2 * r);
-        g2.setColor(Color.BLACK);
+        Stroke oldStroke = g2.getStroke();
+        if (edgeStart != null && n == edgeTarget) {
+            g2.setColor(new Color(255, 94, 14));
+            g2.setStroke(new BasicStroke(2f));
+        } else if (n == hoveredNode) {
+            g2.setColor(Color.BLUE);
+            g2.setStroke(new BasicStroke(2f));
+        } else {
+            g2.setColor(Color.BLACK);
+        }
         g2.drawOval(x, y, 2 * r, 2 * r);
+        g2.setStroke(oldStroke);
         // Draw label centered
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(n.getLabel());
