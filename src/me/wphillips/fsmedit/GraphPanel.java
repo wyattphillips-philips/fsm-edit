@@ -169,6 +169,9 @@ public class GraphPanel extends JPanel {
 
     public void setPropertiesPanel(NodePropertiesPanel panel) {
         this.propertiesPanel = panel;
+        if (panel != null) {
+            panel.setNode(selectedNode);
+        }
     }
 
     public void addNode(Node node) {

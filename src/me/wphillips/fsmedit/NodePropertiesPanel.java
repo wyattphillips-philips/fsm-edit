@@ -69,6 +69,9 @@ public class NodePropertiesPanel extends JPanel {
         gbc.gridy++;
         add(Box.createVerticalGlue(), gbc);
         setPreferredSize(new Dimension(180, 0));
+
+        // Start with no node selected so the fields are hidden initially
+        setNode(null);
     }
 
     public void setNode(Node node) {
