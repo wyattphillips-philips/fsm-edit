@@ -8,7 +8,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class NodePropertiesPanel extends JPanel {
+    private final JLabel labelLabel;
     private final JTextField labelField;
+    private final JLabel colorLabel;
     private final JButton colorButton;
     private final GraphPanel graphPanel;
     private Node node;
@@ -25,7 +27,8 @@ public class NodePropertiesPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0;
-        add(new JLabel("Label:"), gbc);
+        labelLabel = new JLabel("Label:");
+        add(labelLabel, gbc);
         gbc.gridy++;
         labelField = new JTextField();
         labelField.setEnabled(false);
@@ -44,7 +47,8 @@ public class NodePropertiesPanel extends JPanel {
         add(labelField, gbc);
         gbc.gridy++;
         gbc.weightx = 0;
-        add(new JLabel("Color:"), gbc);
+        colorLabel = new JLabel("Color:");
+        add(colorLabel, gbc);
         gbc.gridy++;
         colorButton = new JButton();
         colorButton.setEnabled(false);
@@ -69,16 +73,21 @@ public class NodePropertiesPanel extends JPanel {
 
     public void setNode(Node node) {
         this.node = node;
+        boolean visible = node != null;
+        labelLabel.setVisible(visible);
+        labelField.setVisible(visible);
+        colorLabel.setVisible(visible);
+        colorButton.setVisible(visible);
+        labelField.setEnabled(visible);
+        colorButton.setEnabled(visible);
         if (node == null) {
             labelField.setText("");
-            labelField.setEnabled(false);
             colorButton.setBackground(null);
-            colorButton.setEnabled(false);
         } else {
             labelField.setText(node.getLabel());
-            labelField.setEnabled(true);
             colorButton.setBackground(node.getColor());
-            colorButton.setEnabled(true);
         }
+        revalidate();
+        repaint();
     }
 }
