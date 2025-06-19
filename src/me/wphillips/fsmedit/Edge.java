@@ -16,4 +16,11 @@ public class Edge {
     public Node getTo() {
         return to;
     }
+
+    /**
+     * Update the destination node for this edge.
+     */
+    public void setTo(Node to) {
+        this.to = to;
+    }
 }
