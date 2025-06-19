@@ -22,6 +22,7 @@ public class GraphPanel extends JPanel {
     private Node edgeStart;
     private Node tempEdgeNode;
     private Node edgeTarget;
+    private Edge editingEdge;
     private final GraphPopupMenu popupMenu;
 
     /**
@@ -47,6 +48,17 @@ public class GraphPanel extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (e.isControlDown()) {
+                        Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
+                        if (edgeHit != null) {
+                            editingEdge = edgeHit;
+                            edgeStart = editingEdge.getFrom();
+                            tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
+                            edgeTarget = null;
+                            repaint();
+                            return;
+                        }
+                    }
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null) {
                         if (e.isControlDown()) {
@@ -70,7 +82,17 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (edgeStart != null) {
+                if (editingEdge != null) {
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    if (hit != null && hit != edgeStart) {
+                        editingEdge.setTo(hit);
+                    }
+                    editingEdge = null;
+                    edgeStart = null;
+                    tempEdgeNode = null;
+                    edgeTarget = null;
+                    repaint();
+                } else if (edgeStart != null) {
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null && hit != edgeStart) {
                         addEdge(new Edge(edgeStart, hit));
@@ -91,7 +113,16 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (edgeStart != null) {
+                if (editingEdge != null) {
+                    tempEdgeNode.setPosition(e.getX(), e.getY());
+                    Node hit = getNodeAt(e.getX(), e.getY());
+                    if (hit != null && hit != edgeStart) {
+                        edgeTarget = hit;
+                    } else {
+                        edgeTarget = null;
+                    }
+                    repaint();
+                } else if (edgeStart != null) {
                     tempEdgeNode.setPosition(e.getX(), e.getY());
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null && hit != edgeStart) {
@@ -160,6 +191,23 @@ public class GraphPanel extends JPanel {
         return null;
     }
 
+    /**
+     * Return the topmost edge whose arrow head is near the given coordinates.
+     */
+    private Edge getEdgeAtArrowHead(int x, int y) {
+        final int threshold = 10;
+        for (int i = edges.size() - 1; i >= 0; i--) {
+            Edge e = edges.get(i);
+            Point tip = boundaryPoint(e.getTo(), e.getFrom());
+            int dx = x - tip.x;
+            int dy = y - tip.y;
+            if (dx * dx + dy * dy <= threshold * threshold) {
+                return e;
+            }
+        }
+        return null;
+    }
+
     public void setStartNode(Node node) {
         this.startNode = node;
         repaint();
@@ -174,9 +222,11 @@ public class GraphPanel extends JPanel {
         // Draw edges first
         g2.setColor(Color.BLACK);
         for (Edge e : edges) {
-            drawArrow(g2, e.getFrom(), e.getTo());
+            if (e != editingEdge) {
+                drawArrow(g2, e.getFrom(), e.getTo());
+            }
         }
-        if (edgeStart != null && tempEdgeNode != null) {
+        if ((edgeStart != null || editingEdge != null) && tempEdgeNode != null) {
             drawArrow(g2, edgeStart, new Point(tempEdgeNode.getX(), tempEdgeNode.getY()));
         }
 
@@ -197,7 +247,7 @@ public class GraphPanel extends JPanel {
         }
         g2.fillOval(x, y, 2 * r, 2 * r);
         Stroke oldStroke = g2.getStroke();
-        if (edgeStart != null && n == edgeTarget) {
+        if ((edgeStart != null || editingEdge != null) && n == edgeTarget) {
             g2.setColor(new Color(255, 94, 14));
             g2.setStroke(new BasicStroke(2f));
         } else if (n == hoveredNode) {
