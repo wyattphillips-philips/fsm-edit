@@ -12,6 +12,35 @@ public class GraphMenuBar extends JMenuBar {
         this.panel = panel;
         JMenu fileMenu = new JMenu("File");
 
+        JMenuItem newItem = new JMenuItem("New");
+        newItem.addActionListener(e -> {
+            if (panel.getNodeCount() > 0 || panel.getEdgeCount() > 0) {
+                int choice = JOptionPane.showConfirmDialog(panel,
+                        "Save current graph before creating a new one?",
+                        "Unsaved Graph", JOptionPane.YES_NO_CANCEL_OPTION);
+                if (choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION) {
+                    return;
+                }
+                if (choice == JOptionPane.YES_OPTION) {
+                    JFileChooser chooser = new JFileChooser();
+                    if (chooser.showSaveDialog(panel) == JFileChooser.APPROVE_OPTION) {
+                        try {
+                            panel.saveGraph(chooser.getSelectedFile());
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(panel,
+                                    "Failed to save file: " + ex.getMessage(),
+                                    "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                }
+            }
+            panel.clearGraph();
+        });
+        fileMenu.add(newItem);
+
         JMenuItem openItem = new JMenuItem("Open...");
         openItem.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();

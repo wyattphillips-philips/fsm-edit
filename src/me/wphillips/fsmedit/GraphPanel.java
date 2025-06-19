@@ -191,6 +191,13 @@ public class GraphPanel extends JPanel {
     }
 
     /**
+     * Get the number of edges in the graph.
+     */
+    public int getEdgeCount() {
+        return edges.size();
+    }
+
+    /**
      * Remove a node and any edges that reference it.
      */
     public void removeNode(Node node) {
@@ -240,6 +247,26 @@ public class GraphPanel extends JPanel {
 
     public void setStartNode(Node node) {
         this.startNode = node;
+        repaint();
+    }
+
+    /**
+     * Remove all nodes and edges from the graph.
+     */
+    public void clearGraph() {
+        nodes.clear();
+        edges.clear();
+        startNode = null;
+        selectedNode = null;
+        hoveredNode = null;
+        draggedNode = null;
+        editingEdge = null;
+        edgeStart = null;
+        tempEdgeNode = null;
+        edgeTarget = null;
+        if (propertiesPanel != null) {
+            propertiesPanel.setNode(null);
+        }
         repaint();
     }
 

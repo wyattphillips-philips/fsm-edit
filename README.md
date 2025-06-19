@@ -8,4 +8,4 @@ Finite state machine editor.
 
 ## File Menu
 
-Graphs can be saved and loaded using the "File" menu. Graphs are serialized using Java's built-in object serialization.
+The "File" menu provides options to create a new graph, open an existing one and save the current graph. Data is serialized using Java's built-in object serialization.
