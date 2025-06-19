@@ -86,6 +86,8 @@ public class GraphPanel extends JPanel {
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null && hit != edgeStart) {
                         editingEdge.setTo(hit);
+                    } else {
+                        edges.remove(editingEdge);
                     }
                     editingEdge = null;
                     edgeStart = null;
