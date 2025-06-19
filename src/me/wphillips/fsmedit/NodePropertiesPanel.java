@@ -3,6 +3,8 @@ package me.wphillips.fsmedit;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 public class NodePropertiesPanel extends JPanel {
@@ -14,12 +16,15 @@ public class NodePropertiesPanel extends JPanel {
     public NodePropertiesPanel(GraphPanel graphPanel) {
         this.graphPanel = graphPanel;
         setLayout(new GridBagLayout());
-        setBorder(BorderFactory.createTitledBorder("Node Properties"));
+        setBorder(new CompoundBorder(
+                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Node Properties"),
+                new EmptyBorder(4, 4, 4, 4)));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(2,2,2,2);
+        gbc.insets = new Insets(2, 2, 2, 2);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.weightx = 0;
         add(new JLabel("Label:"), gbc);
         gbc.gridy++;
         labelField = new JTextField();
@@ -35,8 +40,10 @@ public class NodePropertiesPanel extends JPanel {
                 }
             }
         });
+        gbc.weightx = 1.0;
         add(labelField, gbc);
         gbc.gridy++;
+        gbc.weightx = 0;
         add(new JLabel("Color:"), gbc);
         gbc.gridy++;
         colorButton = new JButton();
@@ -52,6 +59,7 @@ public class NodePropertiesPanel extends JPanel {
                 }
             }
         });
+        gbc.weightx = 1.0;
         add(colorButton, gbc);
         gbc.weighty = 1;
         gbc.gridy++;
