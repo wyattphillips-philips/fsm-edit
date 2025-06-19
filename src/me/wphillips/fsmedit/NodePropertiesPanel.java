@@ -50,7 +50,7 @@ public class NodePropertiesPanel extends JPanel {
         colorLabel = new JLabel("Color:");
         add(colorLabel, gbc);
         gbc.gridy++;
-        colorButton = new JButton();
+        colorButton = new JButton("Select Color");
         colorButton.setEnabled(false);
         colorButton.addActionListener(e -> {
             if (node != null) {
