@@ -1,12 +1,25 @@
 package me.wphillips.fsmedit;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import me.wphillips.fsmedit.GraphIO;
 
 /**
  * Simple menu bar used by {@link GraphEditor} containing "File" and "Edit" menus.
  */
 public class GraphMenuBar extends JMenuBar {
     private final GraphPanel panel;
+
+    private JFileChooser createChooser() {
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                "FSM Graph (*." + GraphIO.EXTENSION + ")",
+                GraphIO.EXTENSION);
+        chooser.setFileFilter(filter);
+        chooser.setAcceptAllFileFilterUsed(false);
+        return chooser;
+    }
 
     public GraphMenuBar(GraphPanel panel) {
         this.panel = panel;
@@ -22,10 +35,11 @@ public class GraphMenuBar extends JMenuBar {
                     return;
                 }
                 if (choice == JOptionPane.YES_OPTION) {
-                    JFileChooser chooser = new JFileChooser();
+                    JFileChooser chooser = createChooser();
                     if (chooser.showSaveDialog(panel) == JFileChooser.APPROVE_OPTION) {
                         try {
-                            panel.saveGraph(chooser.getSelectedFile());
+                            panel.saveGraph(GraphIO.withExtension(
+                                    chooser.getSelectedFile()));
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(panel,
                                     "Failed to save file: " + ex.getMessage(),
@@ -43,10 +57,11 @@ public class GraphMenuBar extends JMenuBar {
 
         JMenuItem openItem = new JMenuItem("Open...");
         openItem.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            JFileChooser chooser = createChooser();
             if (chooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION) {
                 try {
-                    panel.loadGraph(chooser.getSelectedFile());
+                    panel.loadGraph(GraphIO.withExtension(
+                            chooser.getSelectedFile()));
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(panel,
                             "Failed to open file: " + ex.getMessage(),
@@ -58,10 +73,11 @@ public class GraphMenuBar extends JMenuBar {
 
         JMenuItem saveItem = new JMenuItem("Save...");
         saveItem.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
+            JFileChooser chooser = createChooser();
             if (chooser.showSaveDialog(panel) == JFileChooser.APPROVE_OPTION) {
                 try {
-                    panel.saveGraph(chooser.getSelectedFile());
+                    panel.saveGraph(GraphIO.withExtension(
+                            chooser.getSelectedFile()));
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(panel,
                             "Failed to save file: " + ex.getMessage(),

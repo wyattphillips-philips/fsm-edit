@@ -12,6 +12,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import me.wphillips.fsmedit.NodePropertiesPanel;
+import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
     private final List<Node> nodes = new ArrayList<>();
@@ -274,14 +275,15 @@ public class GraphPanel extends JPanel {
      * Serialize the current graph to the specified file.
      */
     public void saveGraph(File file) throws IOException {
-        GraphIO.save(file, new GraphModel(nodes, edges, startNode));
+        GraphIO.save(GraphIO.withExtension(file),
+                new GraphModel(nodes, edges, startNode));
     }
 
     /**
      * Load a graph from the given file, replacing the current contents.
      */
     public void loadGraph(File file) throws IOException, ClassNotFoundException {
-        GraphModel model = GraphIO.load(file);
+        GraphModel model = GraphIO.load(GraphIO.withExtension(file));
         nodes.clear();
         nodes.addAll(model.getNodes());
         edges.clear();
