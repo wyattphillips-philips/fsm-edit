@@ -1,16 +1,24 @@
 package me.wphillips.fsmedit;
 
+import java.awt.Color;
+
 public class Node {
     private int x;
     private int y;
     private int radius;
     private String label;
+    private Color color;
 
     public Node(int x, int y, int radius, String label) {
+        this(x, y, radius, label, Color.WHITE);
+    }
+
+    public Node(int x, int y, int radius, String label, Color color) {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.label = label;
+        this.color = color;
     }
 
     public int getX() {
@@ -27,6 +35,18 @@ public class Node {
 
     public String getLabel() {
         return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     /**

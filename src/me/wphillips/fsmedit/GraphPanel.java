@@ -10,6 +10,7 @@ import java.awt.Cursor;
 import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.List;
+import me.wphillips.fsmedit.NodePropertiesPanel;
 
 public class GraphPanel extends JPanel {
     private final List<Node> nodes = new ArrayList<>();
@@ -17,6 +18,8 @@ public class GraphPanel extends JPanel {
     private Node startNode;
     private Node draggedNode;
     private Node hoveredNode;
+    private Node selectedNode;
+    private NodePropertiesPanel propertiesPanel;
     private int lastMouseX;
     private int lastMouseY;
     private Node edgeStart;
@@ -67,10 +70,21 @@ public class GraphPanel extends JPanel {
                             edgeTarget = null;
                             repaint();
                         } else {
+                            selectedNode = hit;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setNode(hit);
+                            }
                             draggedNode = hit;
                             lastMouseX = e.getX();
                             lastMouseY = e.getY();
+                            repaint();
                         }
+                    } else {
+                        selectedNode = null;
+                        if (propertiesPanel != null) {
+                            propertiesPanel.setNode(null);
+                        }
+                        repaint();
                     }
                 } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     Node hit = getNodeAt(e.getX(), e.getY());
@@ -153,6 +167,10 @@ public class GraphPanel extends JPanel {
         addMouseMotionListener(handler);
     }
 
+    public void setPropertiesPanel(NodePropertiesPanel panel) {
+        this.propertiesPanel = panel;
+    }
+
     public void addNode(Node node) {
         nodes.add(node);
     }
@@ -176,6 +194,12 @@ public class GraphPanel extends JPanel {
         edges.removeIf(e -> e.getFrom() == node || e.getTo() == node);
         if (startNode == node) {
             startNode = null;
+        }
+        if (selectedNode == node) {
+            selectedNode = null;
+            if (propertiesPanel != null) {
+                propertiesPanel.setNode(null);
+            }
         }
         repaint();
     }
@@ -245,11 +269,14 @@ public class GraphPanel extends JPanel {
         if (n == startNode) {
             g2.setColor(new Color(144, 238, 144)); // light green
         } else {
-            g2.setColor(Color.WHITE);
+            g2.setColor(n.getColor());
         }
         g2.fillOval(x, y, 2 * r, 2 * r);
         Stroke oldStroke = g2.getStroke();
-        if ((edgeStart != null || editingEdge != null) && n == edgeTarget) {
+        if (n == selectedNode) {
+            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(2f));
+        } else if ((edgeStart != null || editingEdge != null) && n == edgeTarget) {
             g2.setColor(new Color(255, 94, 14));
             g2.setStroke(new BasicStroke(2f));
         } else if (n == hoveredNode) {
