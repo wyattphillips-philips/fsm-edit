@@ -8,9 +8,11 @@ import java.awt.event.MouseEvent;
 import java.awt.BasicStroke;
 import java.awt.Cursor;
 import java.awt.Stroke;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import me.wphillips.fsmedit.NodePropertiesPanel;
+import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
     private final List<Node> nodes = new ArrayList<>();
@@ -190,6 +192,13 @@ public class GraphPanel extends JPanel {
     }
 
     /**
+     * Get the number of edges in the graph.
+     */
+    public int getEdgeCount() {
+        return edges.size();
+    }
+
+    /**
      * Remove a node and any edges that reference it.
      */
     public void removeNode(Node node) {
@@ -239,6 +248,57 @@ public class GraphPanel extends JPanel {
 
     public void setStartNode(Node node) {
         this.startNode = node;
+        repaint();
+    }
+
+    /**
+     * Remove all nodes and edges from the graph.
+     */
+    public void clearGraph() {
+        nodes.clear();
+        edges.clear();
+        startNode = null;
+        selectedNode = null;
+        hoveredNode = null;
+        draggedNode = null;
+        editingEdge = null;
+        edgeStart = null;
+        tempEdgeNode = null;
+        edgeTarget = null;
+        if (propertiesPanel != null) {
+            propertiesPanel.setNode(null);
+        }
+        repaint();
+    }
+
+    /**
+     * Serialize the current graph to the specified file.
+     */
+    public void saveGraph(File file) throws IOException {
+        GraphIO.save(GraphIO.withExtension(file),
+                new GraphModel(nodes, edges, startNode));
+    }
+
+    /**
+     * Load a graph from the given file, replacing the current contents.
+     */
+    public void loadGraph(File file) throws IOException, ClassNotFoundException {
+        GraphModel model = GraphIO.load(GraphIO.withExtension(file));
+        nodes.clear();
+        nodes.addAll(model.getNodes());
+        edges.clear();
+        edges.addAll(model.getEdges());
+        startNode = model.getStartNode();
+        selectedNode = null;
+        hoveredNode = null;
+        draggedNode = null;
+        editingEdge = null;
+        edgeStart = null;
+        tempEdgeNode = null;
+        edgeTarget = null;
+        if (propertiesPanel != null) {
+            propertiesPanel.setNode(null);
+        }
         repaint();
     }
 

@@ -10,9 +10,8 @@ public class GraphEditor {
             JFrame frame = new JFrame("FSM Graph Editor");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            frame.setJMenuBar(new GraphMenuBar());
-
             GraphPanel panel = new GraphPanel();
+            frame.setJMenuBar(new GraphMenuBar(panel));
             NodePropertiesPanel propertiesPanel = new NodePropertiesPanel(panel);
             panel.setPropertiesPanel(propertiesPanel);
             frame.setLayout(new BorderLayout());
