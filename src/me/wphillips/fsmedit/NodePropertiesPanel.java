@@ -160,6 +160,9 @@ public class NodePropertiesPanel extends JPanel {
     }
 
     public void setNode(Node node) {
+        if (this.node != null && this.node != node) {
+            commitPositionEdits();
+        }
         this.node = node;
         boolean visible = node != null;
         labelLabel.setVisible(visible);
@@ -199,6 +202,23 @@ public class NodePropertiesPanel extends JPanel {
         if (node != null) {
             xSpinner.setValue(node.getX());
             ySpinner.setValue(node.getY());
+        }
+    }
+
+    /**
+     * Commit any unconfirmed edits in the X and Y spinners back to the node.
+     */
+    private void commitPositionEdits() {
+        if (node != null) {
+            try {
+                xSpinner.commitEdit();
+                ySpinner.commitEdit();
+            } catch (java.text.ParseException ignored) {
+                // If the user entered invalid text, ignore and keep last value
+            }
+            node.setX((Integer) xSpinner.getValue());
+            node.setY((Integer) ySpinner.getValue());
+            graphPanel.repaint();
         }
     }
 }
