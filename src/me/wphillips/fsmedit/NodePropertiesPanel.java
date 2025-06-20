@@ -17,6 +17,7 @@ public class NodePropertiesPanel extends JPanel {
     private final JLabel yLabel;
     private final JSpinner ySpinner;
     private final JPanel positionPanel;
+    private final JCheckBox lockPositionCheck;
     private final JLabel colorLabel;
     private final JButton colorButton;
     private final JLabel metadataLabel;
@@ -101,6 +102,19 @@ public class NodePropertiesPanel extends JPanel {
 
         add(positionPanel, gbc);
 
+        // Lock checkbox just below the position controls
+        gbc.gridy++;
+        lockPositionCheck = new JCheckBox("Lock Position");
+        lockPositionCheck.setEnabled(false);
+        lockPositionCheck.addActionListener(e -> {
+            if (node != null) {
+                node.setLocked(lockPositionCheck.isSelected());
+                xSpinner.setEnabled(!node.isLocked());
+                ySpinner.setEnabled(!node.isLocked());
+            }
+        });
+        add(lockPositionCheck, gbc);
+
         // Color
         gbc.gridy++;
         gbc.weightx = 0;
@@ -172,11 +186,19 @@ public class NodePropertiesPanel extends JPanel {
         colorButton.setVisible(visible);
         metadataLabel.setVisible(visible);
         metadataScroll.setVisible(visible);
+        lockPositionCheck.setVisible(visible);
         labelField.setEnabled(visible);
-        xSpinner.setEnabled(visible);
-        ySpinner.setEnabled(visible);
         colorButton.setEnabled(visible);
         metadataArea.setEnabled(visible);
+        if (visible) {
+            xSpinner.setEnabled(!node.isLocked());
+            ySpinner.setEnabled(!node.isLocked());
+            lockPositionCheck.setSelected(node.isLocked());
+        } else {
+            xSpinner.setEnabled(false);
+            ySpinner.setEnabled(false);
+            lockPositionCheck.setSelected(false);
+        }
         if (node == null) {
             labelField.setText("");
             xSpinner.setValue(0);
@@ -202,6 +224,9 @@ public class NodePropertiesPanel extends JPanel {
         if (node != null) {
             xSpinner.setValue(node.getX());
             ySpinner.setValue(node.getY());
+            xSpinner.setEnabled(!node.isLocked());
+            ySpinner.setEnabled(!node.isLocked());
+            lockPositionCheck.setSelected(node.isLocked());
         }
     }
 
@@ -209,7 +234,7 @@ public class NodePropertiesPanel extends JPanel {
      * Commit any unconfirmed edits in the X and Y spinners back to the node.
      */
     private void commitPositionEdits() {
-        if (node != null) {
+        if (node != null && !node.isLocked()) {
             try {
                 xSpinner.commitEdit();
                 ySpinner.commitEdit();

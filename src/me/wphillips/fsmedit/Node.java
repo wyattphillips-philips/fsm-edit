@@ -13,6 +13,8 @@ public class Node implements Serializable {
     private Color color;
     /** Additional notes attached to the node. */
     private String metadata;
+    /** Whether the node's position is locked. */
+    private boolean locked;
 
     public Node(int x, int y, int radius, String label) {
         this(x, y, radius, label, Color.WHITE);
@@ -25,6 +27,7 @@ public class Node implements Serializable {
         this.label = label;
         this.color = color;
         this.metadata = "";
+        this.locked = false;
     }
 
     public int getX() {
@@ -73,6 +76,20 @@ public class Node implements Serializable {
     /** Set metadata/notes for this node. */
     public void setMetadata(String metadata) {
         this.metadata = metadata;
+    }
+
+    /**
+     * Check whether the node's position is locked.
+     */
+    public boolean isLocked() {
+        return locked;
+    }
+
+    /**
+     * Set whether the node's position should be locked.
+     */
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 
     /**
