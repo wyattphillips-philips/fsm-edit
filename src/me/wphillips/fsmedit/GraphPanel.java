@@ -155,6 +155,9 @@ public class GraphPanel extends JPanel {
                     draggedNode.moveBy(dx, dy);
                     lastMouseX = e.getX();
                     lastMouseY = e.getY();
+                    if (propertiesPanel != null) {
+                        propertiesPanel.updatePositionFields();
+                    }
                     repaint();
                 }
             }

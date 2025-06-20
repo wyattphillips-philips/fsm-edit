@@ -123,7 +123,8 @@ public class NodePropertiesPanel extends JPanel {
         metadataLabel = new JLabel("Metadata:");
         add(metadataLabel, gbc);
         gbc.gridy++;
-        metadataArea = new JTextArea(5, 10);
+        // Slightly taller area for notes
+        metadataArea = new JTextArea(8, 10);
         metadataArea.setLineWrap(true);
         metadataArea.setWrapStyleWord(true);
         metadataArea.setEnabled(false);
@@ -185,5 +186,16 @@ public class NodePropertiesPanel extends JPanel {
         }
         revalidate();
         repaint();
+    }
+
+    /**
+     * Refresh the X and Y spinner values from the current node state. This
+     * is used by the graph panel when a node is dragged.
+     */
+    public void updatePositionFields() {
+        if (node != null) {
+            xSpinner.setValue(node.getX());
+            ySpinner.setValue(node.getY());
+        }
     }
 }
