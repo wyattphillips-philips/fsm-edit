@@ -5,11 +5,14 @@ import java.io.Serializable;
 
 public class Node implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private int x;
     private int y;
     private int radius;
     private String label;
     private Color color;
+    /** Additional notes attached to the node. */
+    private String metadata;
 
     public Node(int x, int y, int radius, String label) {
         this(x, y, radius, label, Color.WHITE);
@@ -21,14 +24,25 @@ public class Node implements Serializable {
         this.radius = radius;
         this.label = label;
         this.color = color;
+        this.metadata = "";
     }
 
     public int getX() {
         return x;
     }
 
+    /** Set the x-coordinate of this node. */
+    public void setX(int x) {
+        this.x = x;
+    }
+
     public int getY() {
         return y;
+    }
+
+    /** Set the y-coordinate of this node. */
+    public void setY(int y) {
+        this.y = y;
     }
 
     public int getRadius() {
@@ -49,6 +63,16 @@ public class Node implements Serializable {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    /** Get additional metadata/notes for this node. */
+    public String getMetadata() {
+        return metadata;
+    }
+
+    /** Set metadata/notes for this node. */
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
     }
 
     /**
