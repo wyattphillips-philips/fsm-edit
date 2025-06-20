@@ -37,8 +37,10 @@ public class GraphPanel extends JPanel {
     private void setHoveredNode(Node node) {
         if (hoveredNode != node) {
             hoveredNode = node;
-            if (node != null) {
+            if (node != null && !node.isLocked()) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else if (node != null) {
+                setCursor(Cursor.getDefaultCursor());
             } else {
                 setCursor(Cursor.getDefaultCursor());
             }
@@ -76,9 +78,13 @@ public class GraphPanel extends JPanel {
                             if (propertiesPanel != null) {
                                 propertiesPanel.setNode(hit);
                             }
-                            draggedNode = hit;
-                            lastMouseX = e.getX();
-                            lastMouseY = e.getY();
+                            if (!hit.isLocked()) {
+                                draggedNode = hit;
+                                lastMouseX = e.getX();
+                                lastMouseY = e.getY();
+                            } else {
+                                draggedNode = null;
+                            }
                             repaint();
                         }
                     } else {
@@ -150,15 +156,19 @@ public class GraphPanel extends JPanel {
                     }
                     repaint();
                 } else if (draggedNode != null) {
-                    int dx = e.getX() - lastMouseX;
-                    int dy = e.getY() - lastMouseY;
-                    draggedNode.moveBy(dx, dy);
-                    lastMouseX = e.getX();
-                    lastMouseY = e.getY();
-                    if (propertiesPanel != null) {
-                        propertiesPanel.updatePositionFields();
+                    if (!draggedNode.isLocked()) {
+                        int dx = e.getX() - lastMouseX;
+                        int dy = e.getY() - lastMouseY;
+                        draggedNode.moveBy(dx, dy);
+                        lastMouseX = e.getX();
+                        lastMouseY = e.getY();
+                        if (propertiesPanel != null) {
+                            propertiesPanel.updatePositionFields();
+                        }
+                        repaint();
+                    } else {
+                        draggedNode = null;
                     }
-                    repaint();
                 }
             }
 
