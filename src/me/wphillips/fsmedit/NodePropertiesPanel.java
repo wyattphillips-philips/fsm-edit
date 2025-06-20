@@ -8,6 +8,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.text.ParseException;
 
 public class NodePropertiesPanel extends JPanel {
     private final JLabel labelLabel;
@@ -16,6 +17,7 @@ public class NodePropertiesPanel extends JPanel {
     private final JSpinner xSpinner;
     private final JLabel yLabel;
     private final JSpinner ySpinner;
+    private final JPanel positionPanel;
     private final JLabel colorLabel;
     private final JButton colorButton;
     private final JLabel metadataLabel;
@@ -55,13 +57,15 @@ public class NodePropertiesPanel extends JPanel {
         gbc.weightx = 1.0;
         add(labelField, gbc);
 
-        // X position
+        // Position panel with X and Y side by side
         gbc.gridy++;
-        gbc.weightx = 0;
+        gbc.weightx = 1.0;
+        positionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+
         xLabel = new JLabel("X:");
-        add(xLabel, gbc);
-        gbc.gridy++;
+        positionPanel.add(xLabel);
         xSpinner = new JSpinner(new SpinnerNumberModel(0, -10000, 10000, 1));
+        xSpinner.setPreferredSize(new Dimension(60, xSpinner.getPreferredSize().height));
         xSpinner.setEnabled(false);
         xSpinner.addChangeListener(new ChangeListener() {
             @Override
@@ -72,16 +76,24 @@ public class NodePropertiesPanel extends JPanel {
                 }
             }
         });
-        gbc.weightx = 1.0;
-        add(xSpinner, gbc);
+        ((JFormattedTextField) ((JSpinner.DefaultEditor) xSpinner.getEditor()).getTextField()).getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { commit(); }
+            public void removeUpdate(DocumentEvent e) { commit(); }
+            public void changedUpdate(DocumentEvent e) { commit(); }
+            private void commit() {
+                try {
+                    xSpinner.commitEdit();
+                } catch (ParseException ex) {
+                    return;
+                }
+            }
+        });
+        positionPanel.add(xSpinner);
 
-        // Y position
-        gbc.gridy++;
-        gbc.weightx = 0;
         yLabel = new JLabel("Y:");
-        add(yLabel, gbc);
-        gbc.gridy++;
+        positionPanel.add(yLabel);
         ySpinner = new JSpinner(new SpinnerNumberModel(0, -10000, 10000, 1));
+        ySpinner.setPreferredSize(new Dimension(60, ySpinner.getPreferredSize().height));
         ySpinner.setEnabled(false);
         ySpinner.addChangeListener(new ChangeListener() {
             @Override
@@ -92,8 +104,21 @@ public class NodePropertiesPanel extends JPanel {
                 }
             }
         });
-        gbc.weightx = 1.0;
-        add(ySpinner, gbc);
+        ((JFormattedTextField) ((JSpinner.DefaultEditor) ySpinner.getEditor()).getTextField()).getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { commit(); }
+            public void removeUpdate(DocumentEvent e) { commit(); }
+            public void changedUpdate(DocumentEvent e) { commit(); }
+            private void commit() {
+                try {
+                    ySpinner.commitEdit();
+                } catch (ParseException ex) {
+                    return;
+                }
+            }
+        });
+        positionPanel.add(ySpinner);
+
+        add(positionPanel, gbc);
 
         // Color
         gbc.gridy++;
@@ -158,10 +183,7 @@ public class NodePropertiesPanel extends JPanel {
         boolean visible = node != null;
         labelLabel.setVisible(visible);
         labelField.setVisible(visible);
-        xLabel.setVisible(visible);
-        xSpinner.setVisible(visible);
-        yLabel.setVisible(visible);
-        ySpinner.setVisible(visible);
+        positionPanel.setVisible(visible);
         colorLabel.setVisible(visible);
         colorButton.setVisible(visible);
         metadataLabel.setVisible(visible);
