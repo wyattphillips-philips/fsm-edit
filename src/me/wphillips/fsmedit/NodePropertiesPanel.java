@@ -8,7 +8,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.text.ParseException;
 
 public class NodePropertiesPanel extends JPanel {
     private final JLabel labelLabel;
@@ -76,18 +75,7 @@ public class NodePropertiesPanel extends JPanel {
                 }
             }
         });
-        ((JFormattedTextField) ((JSpinner.DefaultEditor) xSpinner.getEditor()).getTextField()).getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { commit(); }
-            public void removeUpdate(DocumentEvent e) { commit(); }
-            public void changedUpdate(DocumentEvent e) { commit(); }
-            private void commit() {
-                try {
-                    xSpinner.commitEdit();
-                } catch (ParseException ex) {
-                    return;
-                }
-            }
-        });
+        // Use standard spinner behavior without committing on every keystroke
         positionPanel.add(xSpinner);
 
         yLabel = new JLabel("Y:");
@@ -104,18 +92,7 @@ public class NodePropertiesPanel extends JPanel {
                 }
             }
         });
-        ((JFormattedTextField) ((JSpinner.DefaultEditor) ySpinner.getEditor()).getTextField()).getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { commit(); }
-            public void removeUpdate(DocumentEvent e) { commit(); }
-            public void changedUpdate(DocumentEvent e) { commit(); }
-            private void commit() {
-                try {
-                    ySpinner.commitEdit();
-                } catch (ParseException ex) {
-                    return;
-                }
-            }
-        });
+        // Use standard spinner behavior without committing on every keystroke
         positionPanel.add(ySpinner);
 
         add(positionPanel, gbc);
