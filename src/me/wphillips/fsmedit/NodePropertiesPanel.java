@@ -187,6 +187,7 @@ public class NodePropertiesPanel extends JPanel {
         metadataLabel.setVisible(visible);
         metadataScroll.setVisible(visible);
         lockPositionCheck.setVisible(visible);
+        lockPositionCheck.setEnabled(visible);
         labelField.setEnabled(visible);
         colorButton.setEnabled(visible);
         metadataArea.setEnabled(visible);
@@ -194,10 +195,12 @@ public class NodePropertiesPanel extends JPanel {
             xSpinner.setEnabled(!node.isLocked());
             ySpinner.setEnabled(!node.isLocked());
             lockPositionCheck.setSelected(node.isLocked());
+            lockPositionCheck.setEnabled(true);
         } else {
             xSpinner.setEnabled(false);
             ySpinner.setEnabled(false);
             lockPositionCheck.setSelected(false);
+            lockPositionCheck.setEnabled(false);
         }
         if (node == null) {
             labelField.setText("");
@@ -227,6 +230,7 @@ public class NodePropertiesPanel extends JPanel {
             xSpinner.setEnabled(!node.isLocked());
             ySpinner.setEnabled(!node.isLocked());
             lockPositionCheck.setSelected(node.isLocked());
+            lockPositionCheck.setEnabled(true);
         }
     }
 
