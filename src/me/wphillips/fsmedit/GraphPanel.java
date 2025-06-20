@@ -21,6 +21,9 @@ public class GraphPanel extends JPanel {
     private Node draggedNode;
     private Node hoveredNode;
     private Node selectedNode;
+    private final List<Node> selectedNodes = new ArrayList<>();
+    private Point selectionStart;
+    private Rectangle selectionRect;
     private NodePropertiesPanel propertiesPanel;
     private int lastMouseX;
     private int lastMouseY;
@@ -74,9 +77,11 @@ public class GraphPanel extends JPanel {
                             edgeTarget = null;
                             repaint();
                         } else {
+                            selectedNodes.clear();
+                            selectedNodes.add(hit);
                             selectedNode = hit;
                             if (propertiesPanel != null) {
-                                propertiesPanel.setNode(hit);
+                                propertiesPanel.setNodes(selectedNodes);
                             }
                             if (!hit.isLocked()) {
                                 draggedNode = hit;
@@ -88,9 +93,15 @@ public class GraphPanel extends JPanel {
                             repaint();
                         }
                     } else {
+                        selectedNodes.clear();
                         selectedNode = null;
+                        draggedNode = null;
+                        if (!e.isControlDown()) {
+                            selectionStart = new Point(e.getX(), e.getY());
+                            selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
+                        }
                         if (propertiesPanel != null) {
-                            propertiesPanel.setNode(null);
+                            propertiesPanel.setNodes(selectedNodes);
                         }
                         repaint();
                     }
@@ -124,6 +135,27 @@ public class GraphPanel extends JPanel {
                     edgeStart = null;
                     tempEdgeNode = null;
                     edgeTarget = null;
+                    repaint();
+                } else if (selectionRect != null) {
+                    selectedNodes.clear();
+                    Rectangle r = selectionRect;
+                    if (r.width < 0) {
+                        r = new Rectangle(r.x + r.width, r.y, -r.width, r.height);
+                    }
+                    if (r.height < 0) {
+                        r = new Rectangle(r.x, r.y + r.height, r.width, -r.height);
+                    }
+                    for (Node n : nodes) {
+                        if (r.contains(n.getX(), n.getY())) {
+                            selectedNodes.add(n);
+                        }
+                    }
+                    selectedNode = selectedNodes.size() == 1 ? selectedNodes.get(0) : null;
+                    if (propertiesPanel != null) {
+                        propertiesPanel.setNodes(selectedNodes);
+                    }
+                    selectionStart = null;
+                    selectionRect = null;
                     repaint();
                 } else {
                     if (e.isPopupTrigger()) {
@@ -169,6 +201,10 @@ public class GraphPanel extends JPanel {
                     } else {
                         draggedNode = null;
                     }
+                } else if (selectionRect != null) {
+                    selectionRect.width = e.getX() - selectionStart.x;
+                    selectionRect.height = e.getY() - selectionStart.y;
+                    repaint();
                 }
             }
 
@@ -185,7 +221,7 @@ public class GraphPanel extends JPanel {
     public void setPropertiesPanel(NodePropertiesPanel panel) {
         this.propertiesPanel = panel;
         if (panel != null) {
-            panel.setNode(selectedNode);
+            panel.setNodes(selectedNodes);
         }
     }
 
@@ -223,9 +259,10 @@ public class GraphPanel extends JPanel {
         if (selectedNode == node) {
             selectedNode = null;
             if (propertiesPanel != null) {
-                propertiesPanel.setNode(null);
+                propertiesPanel.setNodes(selectedNodes);
             }
         }
+        selectedNodes.remove(node);
         repaint();
     }
 
@@ -272,6 +309,7 @@ public class GraphPanel extends JPanel {
         edges.clear();
         startNode = null;
         selectedNode = null;
+        selectedNodes.clear();
         hoveredNode = null;
         draggedNode = null;
         editingEdge = null;
@@ -279,7 +317,7 @@ public class GraphPanel extends JPanel {
         tempEdgeNode = null;
         edgeTarget = null;
         if (propertiesPanel != null) {
-            propertiesPanel.setNode(null);
+            propertiesPanel.setNodes(selectedNodes);
         }
         repaint();
     }
@@ -303,6 +341,7 @@ public class GraphPanel extends JPanel {
         edges.addAll(model.getEdges());
         startNode = model.getStartNode();
         selectedNode = null;
+        selectedNodes.clear();
         hoveredNode = null;
         draggedNode = null;
         editingEdge = null;
@@ -310,7 +349,7 @@ public class GraphPanel extends JPanel {
         tempEdgeNode = null;
         edgeTarget = null;
         if (propertiesPanel != null) {
-            propertiesPanel.setNode(null);
+            propertiesPanel.setNodes(selectedNodes);
         }
         repaint();
     }
@@ -336,6 +375,22 @@ public class GraphPanel extends JPanel {
         for (Node n : nodes) {
             drawNode(g2, n);
         }
+
+        if (selectionRect != null) {
+            Rectangle r = selectionRect;
+            if (r.width < 0) {
+                r = new Rectangle(r.x + r.width, r.y, -r.width, r.height);
+            }
+            if (r.height < 0) {
+                r = new Rectangle(r.x, r.y + r.height, r.width, -r.height);
+            }
+            Stroke old = g2.getStroke();
+            g2.setColor(Color.GRAY);
+            float[] dash = {4f};
+            g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, dash, 0f));
+            g2.drawRect(r.x, r.y, r.width, r.height);
+            g2.setStroke(old);
+        }
     }
 
     private void drawNode(Graphics2D g2, Node n) {
@@ -349,7 +404,7 @@ public class GraphPanel extends JPanel {
         }
         g2.fillOval(x, y, 2 * r, 2 * r);
         Stroke oldStroke = g2.getStroke();
-        if (n == selectedNode) {
+        if (selectedNodes.contains(n)) {
             g2.setColor(Color.RED);
             g2.setStroke(new BasicStroke(2f));
         } else if ((edgeStart != null || editingEdge != null) && n == edgeTarget) {
