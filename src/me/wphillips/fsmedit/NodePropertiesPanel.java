@@ -54,7 +54,11 @@ public class NodePropertiesPanel extends JPanel {
             }
         });
         gbc.weightx = 1.0;
+        // Add a bit more bottom margin below the label field
+        gbc.insets = new Insets(2, 2, 6, 2);
         add(labelField, gbc);
+        // Restore default insets for subsequent rows
+        gbc.insets = new Insets(2, 2, 2, 2);
 
         // Position panel with X and Y side by side
         gbc.gridy++;
