@@ -6,6 +6,7 @@ Finite state machine editor.
 * **Ctrl + Drag** - Create a new edge from one node to another.
 * **Ctrl + Drag an edge** - Change its destination or drop on empty space to delete it.
 * **Drag on empty space** - Box select multiple nodes.
+* **Drag a selected node** - Move all selected nodes together.
 
 ## File Menu
 

@@ -77,9 +77,11 @@ public class GraphPanel extends JPanel {
                             edgeTarget = null;
                             repaint();
                         } else {
-                            selectedNodes.clear();
-                            selectedNodes.add(hit);
-                            selectedNode = hit;
+                            if (!selectedNodes.contains(hit) || selectedNodes.size() <= 1) {
+                                selectedNodes.clear();
+                                selectedNodes.add(hit);
+                            }
+                            selectedNode = selectedNodes.size() == 1 ? hit : null;
                             if (propertiesPanel != null) {
                                 propertiesPanel.setNodes(selectedNodes);
                             }
@@ -191,10 +193,18 @@ public class GraphPanel extends JPanel {
                     if (!draggedNode.isLocked()) {
                         int dx = e.getX() - lastMouseX;
                         int dy = e.getY() - lastMouseY;
-                        draggedNode.moveBy(dx, dy);
+                        if (selectedNodes.size() > 1) {
+                            for (Node n : selectedNodes) {
+                                if (!n.isLocked()) {
+                                    n.moveBy(dx, dy);
+                                }
+                            }
+                        } else {
+                            draggedNode.moveBy(dx, dy);
+                        }
                         lastMouseX = e.getX();
                         lastMouseY = e.getY();
-                        if (propertiesPanel != null) {
+                        if (propertiesPanel != null && selectedNodes.size() == 1) {
                             propertiesPanel.updatePositionFields();
                         }
                         repaint();
