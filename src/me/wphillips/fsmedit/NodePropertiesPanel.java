@@ -8,8 +8,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.List;
 
 public class NodePropertiesPanel extends JPanel {
+    private final JLabel multiSelectLabel;
     private final JLabel labelLabel;
     private final JTextField labelField;
     private final JLabel xLabel;
@@ -37,6 +39,11 @@ public class NodePropertiesPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        multiSelectLabel = new JLabel("Multiple Items Selected");
+        add(multiSelectLabel, gbc);
+        multiSelectLabel.setVisible(false);
+        gbc.gridy++;
         gbc.weightx = 0;
         labelLabel = new JLabel("Label:");
         add(labelLabel, gbc);
@@ -170,10 +177,11 @@ public class NodePropertiesPanel extends JPanel {
         setPreferredSize(new Dimension(180, 0));
 
         // Start with no node selected so the fields are hidden initially
-        setNode(null);
+        setNodes(java.util.Collections.emptyList());
     }
 
     public void setNode(Node node) {
+        multiSelectLabel.setVisible(false);
         if (this.node != null && this.node != node) {
             commitPositionEdits();
         }
@@ -215,6 +223,36 @@ public class NodePropertiesPanel extends JPanel {
             colorButton.setBackground(node.getColor());
             metadataArea.setText(node.getMetadata());
         }
+        revalidate();
+        repaint();
+    }
+
+    public void setNodes(java.util.List<Node> nodes) {
+        if (nodes == null || nodes.isEmpty()) {
+            setNode(null);
+            return;
+        }
+        if (nodes.size() == 1) {
+            setNode(nodes.get(0));
+            return;
+        }
+        if (this.node != null) {
+            commitPositionEdits();
+        }
+        this.node = null;
+        multiSelectLabel.setVisible(true);
+        labelLabel.setVisible(false);
+        labelField.setVisible(false);
+        positionPanel.setVisible(false);
+        colorLabel.setVisible(false);
+        colorButton.setVisible(false);
+        metadataLabel.setVisible(false);
+        metadataScroll.setVisible(false);
+        lockPositionCheck.setVisible(false);
+        lockPositionCheck.setEnabled(false);
+        labelField.setEnabled(false);
+        colorButton.setEnabled(false);
+        metadataArea.setEnabled(false);
         revalidate();
         repaint();
     }

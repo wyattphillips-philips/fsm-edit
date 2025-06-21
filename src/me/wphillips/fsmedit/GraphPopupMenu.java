@@ -27,7 +27,13 @@ public class GraphPopupMenu extends JPopupMenu {
         deleteNodeItem = new JMenuItem("Delete Node");
         deleteNodeItem.addActionListener(e -> {
             if (targetNode != null) {
-                panel.removeNode(targetNode);
+                java.util.List<Node> sel = panel.getSelectedNodes();
+                if (sel.size() > 1 && sel.contains(targetNode)) {
+                    panel.removeNodes(sel);
+                } else {
+                    panel.removeNode(targetNode);
+                }
+                panel.clearSelection();
             }
         });
         add(deleteNodeItem);
