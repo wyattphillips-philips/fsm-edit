@@ -495,5 +495,18 @@ public class GraphPanel extends JPanel {
         for (Node n : new java.util.ArrayList<>(nodesToRemove)) {
             removeNode(n);
         }
+        clearSelection();
+    }
+
+    /**
+     * Clear the current selection and update the properties panel.
+     */
+    public void clearSelection() {
+        selectedNode = null;
+        selectedNodes.clear();
+        if (propertiesPanel != null) {
+            propertiesPanel.setNodes(selectedNodes);
+        }
+        repaint();
     }
 }

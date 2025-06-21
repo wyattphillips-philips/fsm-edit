@@ -33,6 +33,7 @@ public class GraphPopupMenu extends JPopupMenu {
                 } else {
                     panel.removeNode(targetNode);
                 }
+                panel.clearSelection();
             }
         });
         add(deleteNodeItem);
