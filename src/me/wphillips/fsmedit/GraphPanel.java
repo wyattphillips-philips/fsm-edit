@@ -479,4 +479,21 @@ public class GraphPanel extends JPanel {
             g2.draw(new Line2D.Double(to.x, to.y, x, y));
         }
     }
+
+    /**
+     * Get a snapshot of the currently selected nodes.
+     */
+    public java.util.List<Node> getSelectedNodes() {
+        return new java.util.ArrayList<>(selectedNodes);
+    }
+
+    /**
+     * Remove multiple nodes at once. A copy of the input list is used
+     * so callers can pass {@link #getSelectedNodes()} directly.
+     */
+    public void removeNodes(java.util.List<Node> nodesToRemove) {
+        for (Node n : new java.util.ArrayList<>(nodesToRemove)) {
+            removeNode(n);
+        }
+    }
 }
