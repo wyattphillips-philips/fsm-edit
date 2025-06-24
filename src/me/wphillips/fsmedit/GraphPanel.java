@@ -3,6 +3,7 @@ package me.wphillips.fsmedit;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.QuadCurve2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.BasicStroke;
@@ -374,7 +375,7 @@ public class GraphPanel extends JPanel {
         g2.setColor(Color.BLACK);
         for (Edge e : edges) {
             if (e != editingEdge) {
-                drawArrow(g2, e.getFrom(), e.getTo());
+                drawArrow(g2, e);
             }
         }
         if ((edgeStart != null || editingEdge != null) && tempEdgeNode != null) {
@@ -435,6 +436,14 @@ public class GraphPanel extends JPanel {
         g2.drawString(n.getLabel(), n.getX() - textWidth / 2, n.getY() + textHeight / 2);
     }
 
+    private void drawArrow(Graphics2D g2, Edge edge) {
+        if (edge.getSplineType() == Edge.SplineType.BEZIER) {
+            drawBezierArrow(g2, edge.getFrom(), edge.getTo(), edge.getCurvature());
+        } else {
+            drawArrow(g2, edge.getFrom(), edge.getTo());
+        }
+    }
+
     private void drawArrow(Graphics2D g2, Node from, Node to) {
         Point p1 = boundaryPoint(from, to);
         Point p2 = boundaryPoint(to, from);
@@ -447,6 +456,34 @@ public class GraphPanel extends JPanel {
         Point p2 = new Point(to.x, to.y);
         g2.drawLine(p1.x, p1.y, p2.x, p2.y);
         drawArrowHead(g2, p1, p2);
+    }
+
+    private void drawBezierArrow(Graphics2D g2, Node from, Node to, float curvature) {
+        Point p1 = boundaryPoint(from, to);
+        Point p2 = boundaryPoint(to, from);
+
+        float midX = (p1.x + p2.x) / 2f;
+        float midY = (p1.y + p2.y) / 2f;
+        float dx = p2.x - p1.x;
+        float dy = p2.y - p1.y;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (dist == 0) dist = 1f;
+        float nx = -dy / dist;
+        float ny = dx / dist;
+        float offset = curvature * dist;
+        float cx = midX + nx * offset;
+        float cy = midY + ny * offset;
+
+        QuadCurve2D.Float curve = new QuadCurve2D.Float(p1.x, p1.y, cx, cy, p2.x, p2.y);
+        g2.draw(curve);
+
+        // orientation for arrow head
+        double tx = p2.x - cx;
+        double ty = p2.y - cy;
+        double len = Math.sqrt(tx * tx + ty * ty);
+        if (len == 0) len = 1;
+        Point base = new Point((int) Math.round(p2.x - tx / len * 1), (int) Math.round(p2.y - ty / len * 1));
+        drawArrowHead(g2, base, p2);
     }
 
     private Point boundaryPoint(Node from, Node to) {
