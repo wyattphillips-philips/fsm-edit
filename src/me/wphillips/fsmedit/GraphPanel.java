@@ -459,13 +459,17 @@ public class GraphPanel extends JPanel {
     }
 
     private void drawBezierArrow(Graphics2D g2, Node from, Node to, float curvature) {
-        Point p1 = boundaryPoint(from, to);
-        Point p2 = boundaryPoint(to, from);
+        // compute control point using node centres so connection points can
+        // depend on the curvature
+        int x1 = from.getX();
+        int y1 = from.getY();
+        int x2 = to.getX();
+        int y2 = to.getY();
 
-        float midX = (p1.x + p2.x) / 2f;
-        float midY = (p1.y + p2.y) / 2f;
-        float dx = p2.x - p1.x;
-        float dy = p2.y - p1.y;
+        float midX = (x1 + x2) / 2f;
+        float midY = (y1 + y2) / 2f;
+        float dx = x2 - x1;
+        float dy = y2 - y1;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist == 0) dist = 1f;
         float nx = -dy / dist;
@@ -474,10 +478,15 @@ public class GraphPanel extends JPanel {
         float cx = midX + nx * offset;
         float cy = midY + ny * offset;
 
+        // determine boundary points relative to the control point so that the
+        // curve attaches to the node slightly above or below the middle
+        Point p1 = boundaryPoint(from, (int) cx, (int) cy);
+        Point p2 = boundaryPoint(to, (int) cx, (int) cy);
+
         QuadCurve2D.Float curve = new QuadCurve2D.Float(p1.x, p1.y, cx, cy, p2.x, p2.y);
         g2.draw(curve);
 
-        // orientation for arrow head
+        // orientation for arrow head along tangent at the end
         double tx = p2.x - cx;
         double ty = p2.y - cy;
         double len = Math.sqrt(tx * tx + ty * ty);
