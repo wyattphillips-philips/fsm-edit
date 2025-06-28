@@ -22,7 +22,7 @@ public class GraphEditor {
             panel.addNode(b);
             panel.addNode(c);
             panel.setStartNode(a);
-            panel.addEdge(new Edge(a, b, Edge.SplineType.BEZIER));
+            panel.addEdge(new Edge(a, b));
             panel.addEdge(new Edge(b, c));
             panel.addEdge(new Edge(c, a));
 

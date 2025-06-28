@@ -122,6 +122,7 @@ public class GraphPanel extends JPanel {
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null && hit != edgeStart) {
                         editingEdge.setTo(hit);
+                        setSplineByExistingEdges(editingEdge);
                     } else {
                         edges.remove(editingEdge);
                     }
@@ -248,7 +249,19 @@ public class GraphPanel extends JPanel {
     }
 
     public void addEdge(Edge edge) {
+        setSplineByExistingEdges(edge);
         edges.add(edge);
+    }
+
+    private void setSplineByExistingEdges(Edge edge) {
+        boolean reverse = false;
+        for (Edge e : edges) {
+            if (e != edge && e.getFrom() == edge.getTo() && e.getTo() == edge.getFrom()) {
+                reverse = true;
+                break;
+            }
+        }
+        edge.setSplineType(reverse ? Edge.SplineType.BEZIER : Edge.SplineType.STRAIGHT);
     }
 
     /**
