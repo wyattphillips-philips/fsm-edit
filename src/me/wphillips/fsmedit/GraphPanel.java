@@ -82,6 +82,16 @@ public class GraphPanel extends JPanel {
                 pasteClipboard(p.x, p.y);
             }
         });
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+        am.put("delete", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                java.util.List<Node> sel = getSelectedNodes();
+                if (!sel.isEmpty()) {
+                    removeNodes(sel);
+                }
+            }
+        });
 
         MouseAdapter handler = new MouseAdapter() {
             @Override

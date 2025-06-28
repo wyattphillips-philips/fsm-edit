@@ -11,6 +11,7 @@ Finite state machine editor.
   copy or paste nodes. Pasted nodes appear relative to the cursor.
 * **Ctrl+C / Ctrl+V** - Copy and paste nodes using the keyboard. Paste
   centers the nodes at the current cursor position.
+* **Delete** - Remove the currently selected node(s).
 
 ## File Menu
 
