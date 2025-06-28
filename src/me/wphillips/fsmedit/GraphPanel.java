@@ -3,6 +3,7 @@ package me.wphillips.fsmedit;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.QuadCurve2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.BasicStroke;
@@ -11,7 +12,7 @@ import java.awt.Stroke;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import me.wphillips.fsmedit.NodePropertiesPanel;
+import me.wphillips.fsmedit.PropertiesPanel;
 import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
@@ -24,13 +25,14 @@ public class GraphPanel extends JPanel {
     private final List<Node> selectedNodes = new ArrayList<>();
     private Point selectionStart;
     private Rectangle selectionRect;
-    private NodePropertiesPanel propertiesPanel;
+    private PropertiesPanel propertiesPanel;
     private int lastMouseX;
     private int lastMouseY;
     private Node edgeStart;
     private Node tempEdgeNode;
     private Node edgeTarget;
     private Edge editingEdge;
+    private Edge selectedEdge;
     private final GraphPopupMenu popupMenu;
 
     /**
@@ -62,6 +64,10 @@ public class GraphPanel extends JPanel {
                         Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
                         if (edgeHit != null) {
                             editingEdge = edgeHit;
+                            selectedEdge = edgeHit;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setEdge(selectedEdge);
+                            }
                             edgeStart = editingEdge.getFrom();
                             tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
                             edgeTarget = null;
@@ -83,6 +89,7 @@ public class GraphPanel extends JPanel {
                             }
                             selectedNode = selectedNodes.size() == 1 ? hit : null;
                             if (propertiesPanel != null) {
+                                propertiesPanel.setEdge(null);
                                 propertiesPanel.setNodes(selectedNodes);
                             }
                             if (!hit.isLocked()) {
@@ -92,20 +99,36 @@ public class GraphPanel extends JPanel {
                             } else {
                                 draggedNode = null;
                             }
+                            selectedEdge = null;
                             repaint();
                         }
                     } else {
-                        selectedNodes.clear();
-                        selectedNode = null;
-                        draggedNode = null;
-                        if (!e.isControlDown()) {
-                            selectionStart = new Point(e.getX(), e.getY());
-                            selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
+                        Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
+                        if (edgeHit != null) {
+                            selectedNodes.clear();
+                            selectedNode = null;
+                            draggedNode = null;
+                            selectedEdge = edgeHit;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setNodes(java.util.Collections.emptyList());
+                                propertiesPanel.setEdge(selectedEdge);
+                            }
+                            repaint();
+                        } else {
+                            selectedNodes.clear();
+                            selectedNode = null;
+                            draggedNode = null;
+                            selectedEdge = null;
+                            if (!e.isControlDown()) {
+                                selectionStart = new Point(e.getX(), e.getY());
+                                selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
+                            }
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setEdge(null);
+                                propertiesPanel.setNodes(selectedNodes);
+                            }
+                            repaint();
                         }
-                        if (propertiesPanel != null) {
-                            propertiesPanel.setNodes(selectedNodes);
-                        }
-                        repaint();
                     }
                 } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     Node hit = getNodeAt(e.getX(), e.getY());
@@ -121,8 +144,16 @@ public class GraphPanel extends JPanel {
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null && hit != edgeStart) {
                         editingEdge.setTo(hit);
+                        setSplineByExistingEdges(editingEdge);
                     } else {
                         edges.remove(editingEdge);
+                        if (editingEdge == selectedEdge) {
+                            selectedEdge = null;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setEdge(null);
+                                propertiesPanel.setNodes(selectedNodes);
+                            }
+                        }
                     }
                     editingEdge = null;
                     edgeStart = null;
@@ -228,7 +259,7 @@ public class GraphPanel extends JPanel {
         addMouseMotionListener(handler);
     }
 
-    public void setPropertiesPanel(NodePropertiesPanel panel) {
+    public void setPropertiesPanel(PropertiesPanel panel) {
         this.propertiesPanel = panel;
         if (panel != null) {
             panel.setNodes(selectedNodes);
@@ -247,7 +278,19 @@ public class GraphPanel extends JPanel {
     }
 
     public void addEdge(Edge edge) {
+        setSplineByExistingEdges(edge);
         edges.add(edge);
+    }
+
+    private void setSplineByExistingEdges(Edge edge) {
+        boolean reverse = false;
+        for (Edge e : edges) {
+            if (e != edge && e.getFrom() == edge.getTo() && e.getTo() == edge.getFrom()) {
+                reverse = true;
+                break;
+            }
+        }
+        edge.setSplineType(reverse ? Edge.SplineType.BEZIER : Edge.SplineType.STRAIGHT);
     }
 
     /**
@@ -262,7 +305,18 @@ public class GraphPanel extends JPanel {
      */
     public void removeNode(Node node) {
         nodes.remove(node);
-        edges.removeIf(e -> e.getFrom() == node || e.getTo() == node);
+        edges.removeIf(e -> {
+            if (e.getFrom() == node || e.getTo() == node) {
+                if (e == selectedEdge) {
+                    selectedEdge = null;
+                    if (propertiesPanel != null) {
+                        propertiesPanel.setEdge(null);
+                    }
+                }
+                return true;
+            }
+            return false;
+        });
         if (startNode == node) {
             startNode = null;
         }
@@ -296,7 +350,13 @@ public class GraphPanel extends JPanel {
         final int threshold = 10;
         for (int i = edges.size() - 1; i >= 0; i--) {
             Edge e = edges.get(i);
-            Point tip = boundaryPoint(e.getTo(), e.getFrom());
+            Point tip;
+            if (e.getSplineType() == Edge.SplineType.BEZIER) {
+                Point cp = bezierControlPoint(e.getFrom(), e.getTo(), e.getCurvature());
+                tip = boundaryPoint(e.getTo(), cp.x, cp.y);
+            } else {
+                tip = boundaryPoint(e.getTo(), e.getFrom());
+            }
             int dx = x - tip.x;
             int dy = y - tip.y;
             if (dx * dx + dy * dy <= threshold * threshold) {
@@ -304,6 +364,26 @@ public class GraphPanel extends JPanel {
             }
         }
         return null;
+    }
+
+    private Point bezierControlPoint(Node from, Node to, float curvature) {
+        int x1 = from.getX();
+        int y1 = from.getY();
+        int x2 = to.getX();
+        int y2 = to.getY();
+
+        float midX = (x1 + x2) / 2f;
+        float midY = (y1 + y2) / 2f;
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (dist == 0) dist = 1f;
+        float nx = -dy / dist;
+        float ny = dx / dist;
+        float offset = curvature * dist;
+        int cx = Math.round(midX + nx * offset);
+        int cy = Math.round(midY + ny * offset);
+        return new Point(cx, cy);
     }
 
     public void setStartNode(Node node) {
@@ -320,6 +400,7 @@ public class GraphPanel extends JPanel {
         startNode = null;
         selectedNode = null;
         selectedNodes.clear();
+        selectedEdge = null;
         hoveredNode = null;
         draggedNode = null;
         editingEdge = null;
@@ -352,6 +433,7 @@ public class GraphPanel extends JPanel {
         startNode = model.getStartNode();
         selectedNode = null;
         selectedNodes.clear();
+        selectedEdge = null;
         hoveredNode = null;
         draggedNode = null;
         editingEdge = null;
@@ -374,7 +456,16 @@ public class GraphPanel extends JPanel {
         g2.setColor(Color.BLACK);
         for (Edge e : edges) {
             if (e != editingEdge) {
-                drawArrow(g2, e.getFrom(), e.getTo());
+                Stroke old = g2.getStroke();
+                if (e == selectedEdge) {
+                    g2.setColor(Color.RED);
+                    g2.setStroke(new BasicStroke(2f));
+                }
+                drawArrow(g2, e);
+                if (e == selectedEdge) {
+                    g2.setStroke(old);
+                    g2.setColor(Color.BLACK);
+                }
             }
         }
         if ((edgeStart != null || editingEdge != null) && tempEdgeNode != null) {
@@ -435,6 +526,14 @@ public class GraphPanel extends JPanel {
         g2.drawString(n.getLabel(), n.getX() - textWidth / 2, n.getY() + textHeight / 2);
     }
 
+    private void drawArrow(Graphics2D g2, Edge edge) {
+        if (edge.getSplineType() == Edge.SplineType.BEZIER) {
+            drawBezierArrow(g2, edge.getFrom(), edge.getTo(), edge.getCurvature());
+        } else {
+            drawArrow(g2, edge.getFrom(), edge.getTo());
+        }
+    }
+
     private void drawArrow(Graphics2D g2, Node from, Node to) {
         Point p1 = boundaryPoint(from, to);
         Point p2 = boundaryPoint(to, from);
@@ -447,6 +546,43 @@ public class GraphPanel extends JPanel {
         Point p2 = new Point(to.x, to.y);
         g2.drawLine(p1.x, p1.y, p2.x, p2.y);
         drawArrowHead(g2, p1, p2);
+    }
+
+    private void drawBezierArrow(Graphics2D g2, Node from, Node to, float curvature) {
+        // compute control point using node centres so connection points can
+        // depend on the curvature
+        int x1 = from.getX();
+        int y1 = from.getY();
+        int x2 = to.getX();
+        int y2 = to.getY();
+
+        float midX = (x1 + x2) / 2f;
+        float midY = (y1 + y2) / 2f;
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (dist == 0) dist = 1f;
+        float nx = -dy / dist;
+        float ny = dx / dist;
+        float offset = curvature * dist;
+        float cx = midX + nx * offset;
+        float cy = midY + ny * offset;
+
+        // determine boundary points relative to the control point so that the
+        // curve attaches to the node slightly above or below the middle
+        Point p1 = boundaryPoint(from, (int) cx, (int) cy);
+        Point p2 = boundaryPoint(to, (int) cx, (int) cy);
+
+        QuadCurve2D.Float curve = new QuadCurve2D.Float(p1.x, p1.y, cx, cy, p2.x, p2.y);
+        g2.draw(curve);
+
+        // orientation for arrow head along tangent at the end
+        double tx = p2.x - cx;
+        double ty = p2.y - cy;
+        double len = Math.sqrt(tx * tx + ty * ty);
+        if (len == 0) len = 1;
+        Point base = new Point((int) Math.round(p2.x - tx / len * 1), (int) Math.round(p2.y - ty / len * 1));
+        drawArrowHead(g2, base, p2);
     }
 
     private Point boundaryPoint(Node from, Node to) {
@@ -504,6 +640,7 @@ public class GraphPanel extends JPanel {
     public void clearSelection() {
         selectedNode = null;
         selectedNodes.clear();
+        selectedEdge = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
         }
