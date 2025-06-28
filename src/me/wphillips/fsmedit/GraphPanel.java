@@ -98,7 +98,7 @@ public class GraphPanel extends JPanel {
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (e.isControlDown()) {
-                        Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
+                        Edge edgeHit = getEdgeAt(e.getX(), e.getY());
                         if (edgeHit != null) {
                             editingEdge = edgeHit;
                             selectedEdge = edgeHit;
@@ -140,7 +140,7 @@ public class GraphPanel extends JPanel {
                             repaint();
                         }
                     } else {
-                        Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
+                        Edge edgeHit = getEdgeAt(e.getX(), e.getY());
                         if (edgeHit != null) {
                             selectedNodes.clear();
                             selectedNode = null;
@@ -381,23 +381,26 @@ public class GraphPanel extends JPanel {
     }
 
     /**
-     * Return the topmost edge whose arrow head is near the given coordinates.
+     * Return the topmost edge that is near the given coordinates. The hitbox
+     * includes the entire curve rather than just the arrow head.
      */
-    private Edge getEdgeAtArrowHead(int x, int y) {
-        final int threshold = 10;
+    private Edge getEdgeAt(int x, int y) {
+        final double threshold = 10.0;
         for (int i = edges.size() - 1; i >= 0; i--) {
             Edge e = edges.get(i);
-            Point tip;
             if (e.getSplineType() == Edge.SplineType.BEZIER) {
                 Point cp = bezierControlPoint(e.getFrom(), e.getTo(), e.getCurvature());
-                tip = boundaryPoint(e.getTo(), cp.x, cp.y);
+                Point p1 = boundaryPoint(e.getFrom(), cp.x, cp.y);
+                Point p2 = boundaryPoint(e.getTo(), cp.x, cp.y);
+                if (bezierDistance(p1, cp, p2, x, y) <= threshold) {
+                    return e;
+                }
             } else {
-                tip = boundaryPoint(e.getTo(), e.getFrom());
-            }
-            int dx = x - tip.x;
-            int dy = y - tip.y;
-            if (dx * dx + dy * dy <= threshold * threshold) {
-                return e;
+                Point p1 = boundaryPoint(e.getFrom(), e.getTo());
+                Point p2 = boundaryPoint(e.getTo(), e.getFrom());
+                if (Line2D.ptSegDist(p1.x, p1.y, p2.x, p2.y, x, y) <= threshold) {
+                    return e;
+                }
             }
         }
         return null;
@@ -421,6 +424,28 @@ public class GraphPanel extends JPanel {
         int cx = Math.round(midX + nx * offset);
         int cy = Math.round(midY + ny * offset);
         return new Point(cx, cy);
+    }
+
+    /**
+     * Approximate the distance from a point to a quadratic bezier curve.
+     */
+    private double bezierDistance(Point p1, Point cp, Point p2, int x, int y) {
+        double min = Double.MAX_VALUE;
+        double prevX = p1.x;
+        double prevY = p1.y;
+        for (int i = 1; i <= 20; i++) {
+            double t = i / 20.0;
+            double it = 1 - t;
+            double bx = it * it * p1.x + 2 * it * t * cp.x + t * t * p2.x;
+            double by = it * it * p1.y + 2 * it * t * cp.y + t * t * p2.y;
+            double d = Line2D.ptSegDist(prevX, prevY, bx, by, x, y);
+            if (d < min) {
+                min = d;
+            }
+            prevX = bx;
+            prevY = by;
+        }
+        return min;
     }
 
     public void setStartNode(Node node) {
