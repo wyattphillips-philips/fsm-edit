@@ -20,6 +20,6 @@ The "File" menu provides options to create a new graph, open an existing one and
 
 The node properties panel includes a **Lock Position** checkbox. When checked,
 the selected node cannot be dragged or repositioned via its X and Y fields.
-When multiple nodes are selected, the panel simply displays "Multiple Items Selected".
+When multiple nodes are selected, the panel shows how many nodes are selected, e.g., "10 Nodes Selected".
 The color picker remembers previously chosen swatches so you can quickly reuse
 recent colors when editing multiple nodes.
