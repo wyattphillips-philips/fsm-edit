@@ -310,7 +310,13 @@ public class GraphPanel extends JPanel {
         final int threshold = 10;
         for (int i = edges.size() - 1; i >= 0; i--) {
             Edge e = edges.get(i);
-            Point tip = boundaryPoint(e.getTo(), e.getFrom());
+            Point tip;
+            if (e.getSplineType() == Edge.SplineType.BEZIER) {
+                Point cp = bezierControlPoint(e.getFrom(), e.getTo(), e.getCurvature());
+                tip = boundaryPoint(e.getTo(), cp.x, cp.y);
+            } else {
+                tip = boundaryPoint(e.getTo(), e.getFrom());
+            }
             int dx = x - tip.x;
             int dy = y - tip.y;
             if (dx * dx + dy * dy <= threshold * threshold) {
@@ -318,6 +324,26 @@ public class GraphPanel extends JPanel {
             }
         }
         return null;
+    }
+
+    private Point bezierControlPoint(Node from, Node to, float curvature) {
+        int x1 = from.getX();
+        int y1 = from.getY();
+        int x2 = to.getX();
+        int y2 = to.getY();
+
+        float midX = (x1 + x2) / 2f;
+        float midY = (y1 + y2) / 2f;
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (dist == 0) dist = 1f;
+        float nx = -dy / dist;
+        float ny = dx / dist;
+        float offset = curvature * dist;
+        int cx = Math.round(midX + nx * offset);
+        int cy = Math.round(midY + ny * offset);
+        return new Point(cx, cy);
     }
 
     public void setStartNode(Node node) {
