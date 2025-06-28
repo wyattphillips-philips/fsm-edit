@@ -34,6 +34,10 @@ public class GraphPanel extends JPanel {
     private Edge editingEdge;
     private Edge selectedEdge;
     private final GraphPopupMenu popupMenu;
+    private final java.util.List<Node> clipboardNodes = new java.util.ArrayList<>();
+    private final java.util.List<Edge> clipboardEdges = new java.util.ArrayList<>();
+    private int clipboardCenterX;
+    private int clipboardCenterY;
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -645,5 +649,89 @@ public class GraphPanel extends JPanel {
             propertiesPanel.setNodes(selectedNodes);
         }
         repaint();
+    }
+
+    /** Copy the given nodes and any connecting edges to the internal clipboard. */
+    private void copyNodes(java.util.List<Node> nodesToCopy) {
+        clipboardNodes.clear();
+        clipboardEdges.clear();
+        if (nodesToCopy.isEmpty()) {
+            return;
+        }
+        int sumX = 0;
+        int sumY = 0;
+        java.util.Map<Node, Node> map = new java.util.HashMap<>();
+        for (Node n : nodesToCopy) {
+            Node c = cloneNode(n);
+            clipboardNodes.add(c);
+            map.put(n, c);
+            sumX += n.getX();
+            sumY += n.getY();
+        }
+        clipboardCenterX = Math.round((float) sumX / nodesToCopy.size());
+        clipboardCenterY = Math.round((float) sumY / nodesToCopy.size());
+        for (Edge e : edges) {
+            if (map.containsKey(e.getFrom()) && map.containsKey(e.getTo())) {
+                Edge ec = new Edge(map.get(e.getFrom()), map.get(e.getTo()), e.getSplineType());
+                ec.setCurvature(e.getCurvature());
+                clipboardEdges.add(ec);
+            }
+        }
+    }
+
+    /** Clone a node including its visual properties. */
+    private static Node cloneNode(Node n) {
+        Node c = new Node(n.getX(), n.getY(), n.getRadius(), n.getLabel(), n.getColor());
+        c.setMetadata(n.getMetadata());
+        c.setLocked(n.isLocked());
+        return c;
+    }
+
+    /** Invoked by the popup to copy either the selection or a single node. */
+    public void copyContext(Node clicked) {
+        if (!selectedNodes.isEmpty() && (clicked == null || selectedNodes.contains(clicked))) {
+            copyNodes(selectedNodes);
+        } else if (clicked != null) {
+            java.util.List<Node> single = new java.util.ArrayList<>();
+            single.add(clicked);
+            copyNodes(single);
+        }
+    }
+
+    /** Paste the clipboard contents centered at the given location. */
+    public void pasteClipboard(int x, int y) {
+        if (clipboardNodes.isEmpty()) {
+            return;
+        }
+        int dx = x - clipboardCenterX;
+        int dy = y - clipboardCenterY;
+        java.util.Map<Node, Node> map = new java.util.HashMap<>();
+        for (Node n : clipboardNodes) {
+            Node c = cloneNode(n);
+            c.moveBy(dx, dy);
+            nodes.add(c);
+            map.put(n, c);
+        }
+        for (Edge e : clipboardEdges) {
+            Node from = map.get(e.getFrom());
+            Node to = map.get(e.getTo());
+            if (from != null && to != null) {
+                Edge ec = new Edge(from, to, e.getSplineType());
+                ec.setCurvature(e.getCurvature());
+                edges.add(ec);
+            }
+        }
+        selectedNodes.clear();
+        selectedNodes.addAll(map.values());
+        selectedNode = selectedNodes.size() == 1 ? selectedNodes.get(0) : null;
+        if (propertiesPanel != null) {
+            propertiesPanel.setNodes(selectedNodes);
+        }
+        repaint();
+    }
+
+    /** Check if the clipboard currently contains nodes. */
+    public boolean hasClipboard() {
+        return !clipboardNodes.isEmpty();
     }
 }
