@@ -50,7 +50,7 @@ public class PropertiesPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
-        multiSelectLabel = new JLabel("Multiple Items Selected");
+        multiSelectLabel = new JLabel();
         add(multiSelectLabel, gbc);
         multiSelectLabel.setVisible(false);
         titledBorder.setTitle("Node Properties");
@@ -358,6 +358,7 @@ public class PropertiesPanel extends JPanel {
         this.node = null;
         this.edge = null;
         titledBorder.setTitle("Properties");
+        multiSelectLabel.setText(nodes.size() + " Nodes Selected");
         multiSelectLabel.setVisible(true);
         labelLabel.setVisible(false);
         labelField.setVisible(false);
