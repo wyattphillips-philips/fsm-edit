@@ -10,7 +10,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
-public class NodePropertiesPanel extends JPanel {
+public class PropertiesPanel extends JPanel {
     private final JLabel multiSelectLabel;
     private final JLabel labelLabel;
     private final JTextField labelField;
@@ -33,12 +33,13 @@ public class NodePropertiesPanel extends JPanel {
     private Node node;
     private Edge edge;
 
-    public NodePropertiesPanel(GraphPanel graphPanel) {
+    private final javax.swing.border.TitledBorder titledBorder;
+
+    public PropertiesPanel(GraphPanel graphPanel) {
         this.graphPanel = graphPanel;
         setLayout(new GridBagLayout());
-        setBorder(new CompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Node Properties"),
-                new EmptyBorder(4, 4, 4, 4)));
+        titledBorder = BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Node Properties");
+        setBorder(new CompoundBorder(titledBorder, new EmptyBorder(4, 4, 4, 4)));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(2, 2, 2, 2);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -48,6 +49,7 @@ public class NodePropertiesPanel extends JPanel {
         multiSelectLabel = new JLabel("Multiple Items Selected");
         add(multiSelectLabel, gbc);
         multiSelectLabel.setVisible(false);
+        titledBorder.setTitle("Node Properties");
         gbc.gridy++;
         gbc.weightx = 0;
         labelLabel = new JLabel("Label:");
@@ -170,7 +172,7 @@ public class NodePropertiesPanel extends JPanel {
         colorButton.setEnabled(false);
         colorButton.addActionListener(e -> {
             if (node != null) {
-                Color newColor = JColorChooser.showDialog(NodePropertiesPanel.this,
+                Color newColor = JColorChooser.showDialog(PropertiesPanel.this,
                         "Choose Node Color", node.getColor());
                 if (newColor != null) {
                     node.setColor(newColor);
@@ -225,6 +227,7 @@ public class NodePropertiesPanel extends JPanel {
         }
         this.node = node;
         this.edge = null;
+        titledBorder.setTitle("Node Properties");
         boolean visible = node != null;
         labelLabel.setVisible(visible);
         labelField.setVisible(visible);
@@ -276,6 +279,7 @@ public class NodePropertiesPanel extends JPanel {
         }
         this.node = null;
         this.edge = edge;
+        titledBorder.setTitle("Edge Properties");
         boolean visible = edge != null;
         multiSelectLabel.setVisible(false);
         labelLabel.setVisible(false);
@@ -318,6 +322,7 @@ public class NodePropertiesPanel extends JPanel {
         }
         this.node = null;
         this.edge = null;
+        titledBorder.setTitle("Properties");
         multiSelectLabel.setVisible(true);
         labelLabel.setVisible(false);
         labelField.setVisible(false);

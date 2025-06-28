@@ -2,7 +2,7 @@ package me.wphillips.fsmedit;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
-import me.wphillips.fsmedit.NodePropertiesPanel;
+import me.wphillips.fsmedit.PropertiesPanel;
 
 public class GraphEditor {
     public static void main(String[] args) {
@@ -12,7 +12,7 @@ public class GraphEditor {
 
             GraphPanel panel = new GraphPanel();
             frame.setJMenuBar(new GraphMenuBar(panel));
-            NodePropertiesPanel propertiesPanel = new NodePropertiesPanel(panel);
+            PropertiesPanel propertiesPanel = new PropertiesPanel(panel);
             panel.setPropertiesPanel(propertiesPanel);
             frame.setLayout(new BorderLayout());
             Node a = new Node(100, 100, 30, "A");

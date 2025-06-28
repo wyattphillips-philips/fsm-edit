@@ -12,7 +12,7 @@ import java.awt.Stroke;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import me.wphillips.fsmedit.NodePropertiesPanel;
+import me.wphillips.fsmedit.PropertiesPanel;
 import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
@@ -25,7 +25,7 @@ public class GraphPanel extends JPanel {
     private final List<Node> selectedNodes = new ArrayList<>();
     private Point selectionStart;
     private Rectangle selectionRect;
-    private NodePropertiesPanel propertiesPanel;
+    private PropertiesPanel propertiesPanel;
     private int lastMouseX;
     private int lastMouseY;
     private Node edgeStart;
@@ -89,8 +89,8 @@ public class GraphPanel extends JPanel {
                             }
                             selectedNode = selectedNodes.size() == 1 ? hit : null;
                             if (propertiesPanel != null) {
-                                propertiesPanel.setNodes(selectedNodes);
                                 propertiesPanel.setEdge(null);
+                                propertiesPanel.setNodes(selectedNodes);
                             }
                             if (!hit.isLocked()) {
                                 draggedNode = hit;
@@ -124,8 +124,8 @@ public class GraphPanel extends JPanel {
                                 selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
                             }
                             if (propertiesPanel != null) {
-                                propertiesPanel.setNodes(selectedNodes);
                                 propertiesPanel.setEdge(null);
+                                propertiesPanel.setNodes(selectedNodes);
                             }
                             repaint();
                         }
@@ -252,7 +252,7 @@ public class GraphPanel extends JPanel {
         addMouseMotionListener(handler);
     }
 
-    public void setPropertiesPanel(NodePropertiesPanel panel) {
+    public void setPropertiesPanel(PropertiesPanel panel) {
         this.propertiesPanel = panel;
         if (panel != null) {
             panel.setNodes(selectedNodes);
