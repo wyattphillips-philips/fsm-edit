@@ -9,6 +9,8 @@ Finite state machine editor.
 * **Drag a selected node** - Move all selected nodes together.
 * **Right-click** - Access context menu with options to add, delete,
   copy or paste nodes. Pasted nodes appear relative to the cursor.
+* **Ctrl+C / Ctrl+V** - Copy and paste nodes using the keyboard. Paste
+  centers the nodes at the current cursor position.
 
 ## File Menu
 

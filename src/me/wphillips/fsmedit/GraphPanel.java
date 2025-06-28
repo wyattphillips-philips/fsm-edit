@@ -6,6 +6,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 import java.awt.BasicStroke;
 import java.awt.Cursor;
 import java.awt.Stroke;
@@ -59,6 +61,27 @@ public class GraphPanel extends JPanel {
 
     public GraphPanel() {
         popupMenu = new GraphPopupMenu(this);
+
+        InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getActionMap();
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "copy");
+        am.put("copy", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                copyContext(hoveredNode);
+            }
+        });
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK), "paste");
+        am.put("paste", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                Point p = getMousePosition();
+                if (p == null) {
+                    p = new Point(getWidth() / 2, getHeight() / 2);
+                }
+                pasteClipboard(p.x, p.y);
+            }
+        });
 
         MouseAdapter handler = new MouseAdapter() {
             @Override
