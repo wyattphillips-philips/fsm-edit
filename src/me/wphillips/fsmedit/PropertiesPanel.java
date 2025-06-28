@@ -136,7 +136,7 @@ public class PropertiesPanel extends JPanel {
         curvatureLabel = new JLabel("Curvature:");
         add(curvatureLabel, gbc);
         gbc.gridy++;
-        curvatureSpinner = new JSpinner(new SpinnerNumberModel(0.3, -1.0, 1.0, 0.1));
+        curvatureSpinner = new JSpinner(new SpinnerNumberModel(0.4, -1.0, 1.0, 0.1));
         curvatureSpinner.setEnabled(false);
         curvatureSpinner.addChangeListener(new ChangeListener() {
             @Override
@@ -298,7 +298,7 @@ public class PropertiesPanel extends JPanel {
         curvatureSpinner.setEnabled(visible);
         if (edge == null) {
             splineCombo.setSelectedIndex(0);
-            curvatureSpinner.setValue(0.3);
+            curvatureSpinner.setValue(0.4);
         } else {
             splineCombo.setSelectedItem(edge.getSplineType());
             curvatureSpinner.setValue((double) edge.getCurvature());

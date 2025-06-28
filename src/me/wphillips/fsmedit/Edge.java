@@ -23,7 +23,7 @@ public class Edge implements Serializable {
         this.from = from;
         this.to = to;
         this.splineType = type;
-        this.curvature = 0.3f;
+        this.curvature = 0.4f;
     }
 
     public Node getFrom() {
@@ -68,7 +68,7 @@ public class Edge implements Serializable {
             splineType = SplineType.STRAIGHT;
         }
         if (curvature == 0f) {
-            curvature = 0.3f;
+            curvature = 0.4f;
         }
     }
 }
