@@ -12,6 +12,8 @@ public class GraphPopupMenu extends JPopupMenu {
     private int y;
     private Node targetNode;
     private final JMenuItem deleteNodeItem;
+    private final JMenuItem copyItem;
+    private final JMenuItem pasteItem;
 
     public GraphPopupMenu(GraphPanel panel) {
         this.panel = panel;
@@ -37,6 +39,14 @@ public class GraphPopupMenu extends JPopupMenu {
             }
         });
         add(deleteNodeItem);
+
+        copyItem = new JMenuItem("Copy");
+        copyItem.addActionListener(e -> panel.copyContext(targetNode));
+        add(copyItem);
+
+        pasteItem = new JMenuItem("Paste");
+        pasteItem.addActionListener(e -> panel.pasteClipboard(x, y));
+        add(pasteItem);
     }
 
     /**
@@ -60,6 +70,9 @@ public class GraphPopupMenu extends JPopupMenu {
         this.y = y;
         this.targetNode = node;
         deleteNodeItem.setVisible(node != null);
+        boolean hasSelection = !panel.getSelectedNodes().isEmpty();
+        copyItem.setVisible(node != null || hasSelection);
+        pasteItem.setVisible(panel.hasClipboard());
         show(invoker, x, y);
     }
 }
