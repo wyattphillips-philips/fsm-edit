@@ -19,6 +19,10 @@ public class NodePropertiesPanel extends JPanel {
     private final JLabel yLabel;
     private final JSpinner ySpinner;
     private final JPanel positionPanel;
+    private final JLabel splineLabel;
+    private final JComboBox<Edge.SplineType> splineCombo;
+    private final JLabel curvatureLabel;
+    private final JSpinner curvatureSpinner;
     private final JCheckBox lockPositionCheck;
     private final JLabel colorLabel;
     private final JButton colorButton;
@@ -27,6 +31,7 @@ public class NodePropertiesPanel extends JPanel {
     private final JScrollPane metadataScroll;
     private final GraphPanel graphPanel;
     private Node node;
+    private Edge edge;
 
     public NodePropertiesPanel(GraphPanel graphPanel) {
         this.graphPanel = graphPanel;
@@ -109,6 +114,39 @@ public class NodePropertiesPanel extends JPanel {
 
         add(positionPanel, gbc);
 
+        // Edge spline type
+        gbc.gridy++;
+        splineLabel = new JLabel("Spline:");
+        add(splineLabel, gbc);
+        gbc.gridy++;
+        splineCombo = new JComboBox<>(Edge.SplineType.values());
+        splineCombo.setEnabled(false);
+        splineCombo.addActionListener(e -> {
+            if (edge != null) {
+                edge.setSplineType((Edge.SplineType) splineCombo.getSelectedItem());
+                graphPanel.repaint();
+            }
+        });
+        add(splineCombo, gbc);
+
+        // Edge curvature
+        gbc.gridy++;
+        curvatureLabel = new JLabel("Curvature:");
+        add(curvatureLabel, gbc);
+        gbc.gridy++;
+        curvatureSpinner = new JSpinner(new SpinnerNumberModel(0.3, -1.0, 1.0, 0.1));
+        curvatureSpinner.setEnabled(false);
+        curvatureSpinner.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (edge != null) {
+                    edge.setCurvature(((Number) curvatureSpinner.getValue()).floatValue());
+                    graphPanel.repaint();
+                }
+            }
+        });
+        add(curvatureSpinner, gbc);
+
         // Lock checkbox just below the position controls
         gbc.gridy++;
         lockPositionCheck = new JCheckBox("Lock Position");
@@ -186,10 +224,15 @@ public class NodePropertiesPanel extends JPanel {
             commitPositionEdits();
         }
         this.node = node;
+        this.edge = null;
         boolean visible = node != null;
         labelLabel.setVisible(visible);
         labelField.setVisible(visible);
         positionPanel.setVisible(visible);
+        splineLabel.setVisible(false);
+        splineCombo.setVisible(false);
+        curvatureLabel.setVisible(false);
+        curvatureSpinner.setVisible(false);
         colorLabel.setVisible(visible);
         colorButton.setVisible(visible);
         metadataLabel.setVisible(visible);
@@ -227,9 +270,43 @@ public class NodePropertiesPanel extends JPanel {
         repaint();
     }
 
+    public void setEdge(Edge edge) {
+        if (this.node != null) {
+            commitPositionEdits();
+        }
+        this.node = null;
+        this.edge = edge;
+        boolean visible = edge != null;
+        multiSelectLabel.setVisible(false);
+        labelLabel.setVisible(false);
+        labelField.setVisible(false);
+        positionPanel.setVisible(false);
+        lockPositionCheck.setVisible(false);
+        colorLabel.setVisible(false);
+        colorButton.setVisible(false);
+        metadataLabel.setVisible(false);
+        metadataScroll.setVisible(false);
+        splineLabel.setVisible(visible);
+        splineCombo.setVisible(visible);
+        curvatureLabel.setVisible(visible);
+        curvatureSpinner.setVisible(visible);
+        splineCombo.setEnabled(visible);
+        curvatureSpinner.setEnabled(visible);
+        if (edge == null) {
+            splineCombo.setSelectedIndex(0);
+            curvatureSpinner.setValue(0.3);
+        } else {
+            splineCombo.setSelectedItem(edge.getSplineType());
+            curvatureSpinner.setValue((double) edge.getCurvature());
+        }
+        revalidate();
+        repaint();
+    }
+
     public void setNodes(java.util.List<Node> nodes) {
         if (nodes == null || nodes.isEmpty()) {
             setNode(null);
+            setEdge(null);
             return;
         }
         if (nodes.size() == 1) {
@@ -240,10 +317,15 @@ public class NodePropertiesPanel extends JPanel {
             commitPositionEdits();
         }
         this.node = null;
+        this.edge = null;
         multiSelectLabel.setVisible(true);
         labelLabel.setVisible(false);
         labelField.setVisible(false);
         positionPanel.setVisible(false);
+        splineLabel.setVisible(false);
+        splineCombo.setVisible(false);
+        curvatureLabel.setVisible(false);
+        curvatureSpinner.setVisible(false);
         colorLabel.setVisible(false);
         colorButton.setVisible(false);
         metadataLabel.setVisible(false);

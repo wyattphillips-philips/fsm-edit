@@ -32,6 +32,7 @@ public class GraphPanel extends JPanel {
     private Node tempEdgeNode;
     private Node edgeTarget;
     private Edge editingEdge;
+    private Edge selectedEdge;
     private final GraphPopupMenu popupMenu;
 
     /**
@@ -63,6 +64,10 @@ public class GraphPanel extends JPanel {
                         Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
                         if (edgeHit != null) {
                             editingEdge = edgeHit;
+                            selectedEdge = edgeHit;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setEdge(selectedEdge);
+                            }
                             edgeStart = editingEdge.getFrom();
                             tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
                             edgeTarget = null;
@@ -85,6 +90,7 @@ public class GraphPanel extends JPanel {
                             selectedNode = selectedNodes.size() == 1 ? hit : null;
                             if (propertiesPanel != null) {
                                 propertiesPanel.setNodes(selectedNodes);
+                                propertiesPanel.setEdge(null);
                             }
                             if (!hit.isLocked()) {
                                 draggedNode = hit;
@@ -93,20 +99,36 @@ public class GraphPanel extends JPanel {
                             } else {
                                 draggedNode = null;
                             }
+                            selectedEdge = null;
                             repaint();
                         }
                     } else {
-                        selectedNodes.clear();
-                        selectedNode = null;
-                        draggedNode = null;
-                        if (!e.isControlDown()) {
-                            selectionStart = new Point(e.getX(), e.getY());
-                            selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
+                        Edge edgeHit = getEdgeAtArrowHead(e.getX(), e.getY());
+                        if (edgeHit != null) {
+                            selectedNodes.clear();
+                            selectedNode = null;
+                            draggedNode = null;
+                            selectedEdge = edgeHit;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setNodes(java.util.Collections.emptyList());
+                                propertiesPanel.setEdge(selectedEdge);
+                            }
+                            repaint();
+                        } else {
+                            selectedNodes.clear();
+                            selectedNode = null;
+                            draggedNode = null;
+                            selectedEdge = null;
+                            if (!e.isControlDown()) {
+                                selectionStart = new Point(e.getX(), e.getY());
+                                selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
+                            }
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setNodes(selectedNodes);
+                                propertiesPanel.setEdge(null);
+                            }
+                            repaint();
                         }
-                        if (propertiesPanel != null) {
-                            propertiesPanel.setNodes(selectedNodes);
-                        }
-                        repaint();
                     }
                 } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     Node hit = getNodeAt(e.getX(), e.getY());
@@ -276,7 +298,18 @@ public class GraphPanel extends JPanel {
      */
     public void removeNode(Node node) {
         nodes.remove(node);
-        edges.removeIf(e -> e.getFrom() == node || e.getTo() == node);
+        edges.removeIf(e -> {
+            if (e.getFrom() == node || e.getTo() == node) {
+                if (e == selectedEdge) {
+                    selectedEdge = null;
+                    if (propertiesPanel != null) {
+                        propertiesPanel.setEdge(null);
+                    }
+                }
+                return true;
+            }
+            return false;
+        });
         if (startNode == node) {
             startNode = null;
         }
@@ -360,6 +393,7 @@ public class GraphPanel extends JPanel {
         startNode = null;
         selectedNode = null;
         selectedNodes.clear();
+        selectedEdge = null;
         hoveredNode = null;
         draggedNode = null;
         editingEdge = null;
@@ -368,6 +402,7 @@ public class GraphPanel extends JPanel {
         edgeTarget = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
+            propertiesPanel.setEdge(null);
         }
         repaint();
     }
@@ -392,6 +427,7 @@ public class GraphPanel extends JPanel {
         startNode = model.getStartNode();
         selectedNode = null;
         selectedNodes.clear();
+        selectedEdge = null;
         hoveredNode = null;
         draggedNode = null;
         editingEdge = null;
@@ -400,6 +436,7 @@ public class GraphPanel extends JPanel {
         edgeTarget = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
+            propertiesPanel.setEdge(null);
         }
         repaint();
     }
@@ -414,7 +451,16 @@ public class GraphPanel extends JPanel {
         g2.setColor(Color.BLACK);
         for (Edge e : edges) {
             if (e != editingEdge) {
+                Stroke old = g2.getStroke();
+                if (e == selectedEdge) {
+                    g2.setColor(Color.RED);
+                    g2.setStroke(new BasicStroke(2f));
+                }
                 drawArrow(g2, e);
+                if (e == selectedEdge) {
+                    g2.setStroke(old);
+                    g2.setColor(Color.BLACK);
+                }
             }
         }
         if ((edgeStart != null || editingEdge != null) && tempEdgeNode != null) {
@@ -589,8 +635,10 @@ public class GraphPanel extends JPanel {
     public void clearSelection() {
         selectedNode = null;
         selectedNodes.clear();
+        selectedEdge = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
+            propertiesPanel.setEdge(null);
         }
         repaint();
     }
