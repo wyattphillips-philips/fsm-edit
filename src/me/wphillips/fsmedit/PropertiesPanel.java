@@ -26,6 +26,10 @@ public class PropertiesPanel extends JPanel {
     private final JCheckBox lockPositionCheck;
     private final JLabel colorLabel;
     private final JButton colorButton;
+    /** Reusable chooser to preserve custom swatches between uses. */
+    private final JColorChooser colorChooser;
+    /** Dialog wrapping {@link #colorChooser}. Recreated only once. */
+    private JDialog colorDialog;
     private final JLabel metadataLabel;
     private final JTextArea metadataArea;
     private final JScrollPane metadataScroll;
@@ -170,15 +174,23 @@ public class PropertiesPanel extends JPanel {
         gbc.gridy++;
         colorButton = new JButton("Select Color");
         colorButton.setEnabled(false);
+        colorChooser = new JColorChooser();
+        colorDialog = null;
         colorButton.addActionListener(e -> {
             if (node != null) {
-                Color newColor = JColorChooser.showDialog(PropertiesPanel.this,
-                        "Choose Node Color", node.getColor());
-                if (newColor != null) {
-                    node.setColor(newColor);
-                    colorButton.setBackground(newColor);
-                    graphPanel.repaint();
+                if (colorDialog == null) {
+                    colorDialog = JColorChooser.createDialog(PropertiesPanel.this,
+                            "Choose Node Color", true, colorChooser, event -> {
+                                if (node != null) {
+                                    Color chosen = colorChooser.getColor();
+                                    node.setColor(chosen);
+                                    colorButton.setBackground(chosen);
+                                    graphPanel.repaint();
+                                }
+                            }, null);
                 }
+                colorChooser.setColor(node.getColor());
+                colorDialog.setVisible(true);
             }
         });
         gbc.weightx = 1.0;
