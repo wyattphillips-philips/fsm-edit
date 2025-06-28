@@ -309,8 +309,31 @@ public class PropertiesPanel extends JPanel {
 
     public void setNodes(java.util.List<Node> nodes) {
         if (nodes == null || nodes.isEmpty()) {
-            setNode(null);
-            setEdge(null);
+            if (this.node != null) {
+                commitPositionEdits();
+            }
+            this.node = null;
+            this.edge = null;
+            titledBorder.setTitle("Select an element");
+            multiSelectLabel.setVisible(false);
+            labelLabel.setVisible(false);
+            labelField.setVisible(false);
+            positionPanel.setVisible(false);
+            splineLabel.setVisible(false);
+            splineCombo.setVisible(false);
+            curvatureLabel.setVisible(false);
+            curvatureSpinner.setVisible(false);
+            colorLabel.setVisible(false);
+            colorButton.setVisible(false);
+            metadataLabel.setVisible(false);
+            metadataScroll.setVisible(false);
+            lockPositionCheck.setVisible(false);
+            lockPositionCheck.setEnabled(false);
+            labelField.setEnabled(false);
+            colorButton.setEnabled(false);
+            metadataArea.setEnabled(false);
+            revalidate();
+            repaint();
             return;
         }
         if (nodes.size() == 1) {

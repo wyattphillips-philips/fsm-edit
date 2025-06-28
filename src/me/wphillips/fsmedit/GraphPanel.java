@@ -147,6 +147,13 @@ public class GraphPanel extends JPanel {
                         setSplineByExistingEdges(editingEdge);
                     } else {
                         edges.remove(editingEdge);
+                        if (editingEdge == selectedEdge) {
+                            selectedEdge = null;
+                            if (propertiesPanel != null) {
+                                propertiesPanel.setEdge(null);
+                                propertiesPanel.setNodes(selectedNodes);
+                            }
+                        }
                     }
                     editingEdge = null;
                     edgeStart = null;
@@ -402,7 +409,6 @@ public class GraphPanel extends JPanel {
         edgeTarget = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
-            propertiesPanel.setEdge(null);
         }
         repaint();
     }
@@ -436,7 +442,6 @@ public class GraphPanel extends JPanel {
         edgeTarget = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
-            propertiesPanel.setEdge(null);
         }
         repaint();
     }
@@ -638,7 +643,6 @@ public class GraphPanel extends JPanel {
         selectedEdge = null;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
-            propertiesPanel.setEdge(null);
         }
         repaint();
     }
