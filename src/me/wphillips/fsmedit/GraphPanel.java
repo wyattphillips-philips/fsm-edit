@@ -524,6 +524,7 @@ public class GraphPanel extends JPanel {
                     g2.setStroke(new BasicStroke(2f));
                 }
                 drawArrow(g2, e);
+                drawEdgeText(g2, e);
                 if (e == selectedEdge) {
                     g2.setStroke(old);
                     g2.setColor(Color.BLACK);
@@ -678,6 +679,31 @@ public class GraphPanel extends JPanel {
         }
     }
 
+    /** Draw any text associated with the given edge near its midpoint. */
+    private void drawEdgeText(Graphics2D g2, Edge edge) {
+        String text = edge.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        Point pos;
+        if (edge.getSplineType() == Edge.SplineType.BEZIER) {
+            Point cp = bezierControlPoint(edge.getFrom(), edge.getTo(), edge.getCurvature());
+            Point p1 = boundaryPoint(edge.getFrom(), cp.x, cp.y);
+            Point p2 = boundaryPoint(edge.getTo(), cp.x, cp.y);
+            double mx = 0.25 * p1.x + 0.5 * cp.x + 0.25 * p2.x;
+            double my = 0.25 * p1.y + 0.5 * cp.y + 0.25 * p2.y;
+            pos = new Point((int) Math.round(mx), (int) Math.round(my));
+        } else {
+            Point p1 = boundaryPoint(edge.getFrom(), edge.getTo());
+            Point p2 = boundaryPoint(edge.getTo(), edge.getFrom());
+            pos = new Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+        }
+        FontMetrics fm = g2.getFontMetrics();
+        int w = fm.stringWidth(text);
+        int h = fm.getAscent();
+        g2.drawString(text, pos.x - w / 2, pos.y - 4 - h / 2);
+    }
+
     /**
      * Get a snapshot of the currently selected nodes.
      */
@@ -732,6 +758,7 @@ public class GraphPanel extends JPanel {
             if (map.containsKey(e.getFrom()) && map.containsKey(e.getTo())) {
                 Edge ec = new Edge(map.get(e.getFrom()), map.get(e.getTo()), e.getSplineType());
                 ec.setCurvature(e.getCurvature());
+                ec.setText(e.getText());
                 clipboardEdges.add(ec);
             }
         }
@@ -776,6 +803,7 @@ public class GraphPanel extends JPanel {
             if (from != null && to != null) {
                 Edge ec = new Edge(from, to, e.getSplineType());
                 ec.setCurvature(e.getCurvature());
+                ec.setText(e.getText());
                 edges.add(ec);
             }
         }
