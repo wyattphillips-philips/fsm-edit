@@ -29,4 +29,5 @@ recent colors when editing multiple nodes.
 
 When an edge is selected the properties panel lets you change its spline type,
 curvature and an optional text string. The text is drawn near the middle of the
-edge in the graph view.
+edge in the graph view and is rendered over a white background so it remains
+readable regardless of the edge color.

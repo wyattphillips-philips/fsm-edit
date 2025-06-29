@@ -699,9 +699,21 @@ public class GraphPanel extends JPanel {
             pos = new Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
         }
         FontMetrics fm = g2.getFontMetrics();
-        int w = fm.stringWidth(text);
-        int h = fm.getAscent();
-        g2.drawString(text, pos.x - w / 2, pos.y - 4 - h / 2);
+        int ascent = fm.getAscent();
+        int descent = fm.getDescent();
+        int textWidth = fm.stringWidth(text);
+        int centerY = pos.y - 4;
+        int baseline = centerY + (ascent - descent) / 2;
+        int x = pos.x - textWidth / 2;
+        int y = baseline - ascent;
+
+        Color prev = g2.getColor();
+        g2.setColor(Color.WHITE);
+        g2.fillRect(x - 2, y - 2, textWidth + 4, ascent + descent + 4);
+        g2.setColor(Color.BLACK);
+        g2.drawRect(x - 2, y - 2, textWidth + 4, ascent + descent + 4);
+        g2.drawString(text, x, baseline);
+        g2.setColor(prev);
     }
 
     /**
