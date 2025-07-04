@@ -744,25 +744,25 @@ public class GraphPanel extends JPanel {
         String[] words = text.split("\\s+");
         StringBuilder line = new StringBuilder();
         for (String word : words) {
-            String candidate = line.length() == 0 ? word : line + " " + word;
-            if (fm.stringWidth(candidate) <= maxWidth) {
-                line.setLength(0);
-                line.append(candidate);
-            } else {
-                if (line.length() > 0) {
-                    lines.add(line.toString());
-                    line.setLength(0);
+            if (line.length() == 0) {
+                if (fm.stringWidth(word) <= maxWidth) {
+                    line.append(word);
+                } else {
+                    splitWord(lines, fm, word, maxWidth);
                 }
-                // If the word itself is longer than maxWidth break it mid-word
-                int start = 0;
-                while (start < word.length()) {
-                    int end = start + 1;
-                    while (end <= word.length() && fm.stringWidth(word.substring(start, end)) <= maxWidth) {
-                        end++;
-                    }
-                    end--;
-                    lines.add(word.substring(start, end));
-                    start = end;
+                continue;
+            }
+
+            String candidate = line + " " + word;
+            if (fm.stringWidth(candidate) <= maxWidth) {
+                line.append(' ').append(word);
+            } else {
+                lines.add(line.toString());
+                line.setLength(0);
+                if (fm.stringWidth(word) <= maxWidth) {
+                    line.append(word);
+                } else {
+                    splitWord(lines, fm, word, maxWidth);
                 }
             }
         }
@@ -770,6 +770,20 @@ public class GraphPanel extends JPanel {
             lines.add(line.toString());
         }
         return lines;
+    }
+
+    /** Break a long word into multiple lines. */
+    private static void splitWord(java.util.List<String> lines, FontMetrics fm, String word, int maxWidth) {
+        int start = 0;
+        while (start < word.length()) {
+            int end = start + 1;
+            while (end <= word.length() && fm.stringWidth(word.substring(start, end)) <= maxWidth) {
+                end++;
+            }
+            end--;
+            lines.add(word.substring(start, end));
+            start = end;
+        }
     }
 
     /**
