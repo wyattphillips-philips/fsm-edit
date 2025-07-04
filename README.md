@@ -24,3 +24,11 @@ the selected node cannot be dragged or repositioned via its X and Y fields.
 When multiple nodes are selected, the panel shows how many nodes are selected, e.g., "10 Nodes Selected".
 The color picker remembers previously chosen swatches so you can quickly reuse
 recent colors when editing multiple nodes.
+
+## Edge Properties
+
+When an edge is selected the properties panel lets you change its spline type,
+curvature and an optional text string. The text is drawn near the middle of the
+edge in the graph view and is rendered over a white background so it remains
+readable regardless of the edge color. Long labels will automatically wrap to
+multiple lines when they exceed about 120 pixels in width.

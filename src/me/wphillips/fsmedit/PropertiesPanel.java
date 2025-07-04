@@ -23,6 +23,8 @@ public class PropertiesPanel extends JPanel {
     private final JComboBox<Edge.SplineType> splineCombo;
     private final JLabel curvatureLabel;
     private final JSpinner curvatureSpinner;
+    private final JLabel edgeTextLabel;
+    private final JTextField edgeTextField;
     private final JCheckBox lockPositionCheck;
     private final JLabel colorLabel;
     private final JButton colorButton;
@@ -153,6 +155,26 @@ public class PropertiesPanel extends JPanel {
         });
         add(curvatureSpinner, gbc);
 
+        // Edge text
+        gbc.gridy++;
+        edgeTextLabel = new JLabel("Text:");
+        add(edgeTextLabel, gbc);
+        gbc.gridy++;
+        edgeTextField = new JTextField();
+        edgeTextField.setEnabled(false);
+        edgeTextField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { update(); }
+            public void removeUpdate(DocumentEvent e) { update(); }
+            public void changedUpdate(DocumentEvent e) { update(); }
+            private void update() {
+                if (edge != null) {
+                    edge.setText(edgeTextField.getText());
+                    graphPanel.repaint();
+                }
+            }
+        });
+        add(edgeTextField, gbc);
+
         // Lock checkbox just below the position controls
         gbc.gridy++;
         lockPositionCheck = new JCheckBox("Lock Position");
@@ -248,6 +270,8 @@ public class PropertiesPanel extends JPanel {
         splineCombo.setVisible(false);
         curvatureLabel.setVisible(false);
         curvatureSpinner.setVisible(false);
+        edgeTextLabel.setVisible(false);
+        edgeTextField.setVisible(false);
         colorLabel.setVisible(visible);
         colorButton.setVisible(visible);
         metadataLabel.setVisible(visible);
@@ -257,6 +281,7 @@ public class PropertiesPanel extends JPanel {
         labelField.setEnabled(visible);
         colorButton.setEnabled(visible);
         metadataArea.setEnabled(visible);
+        edgeTextField.setEnabled(false);
         if (visible) {
             xSpinner.setEnabled(!node.isLocked());
             ySpinner.setEnabled(!node.isLocked());
@@ -306,14 +331,19 @@ public class PropertiesPanel extends JPanel {
         splineCombo.setVisible(visible);
         curvatureLabel.setVisible(visible);
         curvatureSpinner.setVisible(visible);
+        edgeTextLabel.setVisible(visible);
+        edgeTextField.setVisible(visible);
         splineCombo.setEnabled(visible);
         curvatureSpinner.setEnabled(visible);
+        edgeTextField.setEnabled(visible);
         if (edge == null) {
             splineCombo.setSelectedIndex(0);
             curvatureSpinner.setValue(0.4);
+            edgeTextField.setText("");
         } else {
             splineCombo.setSelectedItem(edge.getSplineType());
             curvatureSpinner.setValue((double) edge.getCurvature());
+            edgeTextField.setText(edge.getText());
         }
         revalidate();
         repaint();
@@ -335,6 +365,8 @@ public class PropertiesPanel extends JPanel {
             splineCombo.setVisible(false);
             curvatureLabel.setVisible(false);
             curvatureSpinner.setVisible(false);
+            edgeTextLabel.setVisible(false);
+            edgeTextField.setVisible(false);
             colorLabel.setVisible(false);
             colorButton.setVisible(false);
             metadataLabel.setVisible(false);
@@ -367,6 +399,8 @@ public class PropertiesPanel extends JPanel {
         splineCombo.setVisible(false);
         curvatureLabel.setVisible(false);
         curvatureSpinner.setVisible(false);
+        edgeTextLabel.setVisible(false);
+        edgeTextField.setVisible(false);
         colorLabel.setVisible(false);
         colorButton.setVisible(false);
         metadataLabel.setVisible(false);

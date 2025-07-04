@@ -18,6 +18,8 @@ import me.wphillips.fsmedit.PropertiesPanel;
 import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
+    /** Maximum pixel width for edge text before wrapping occurs. */
+    private static final int EDGE_TEXT_WRAP_WIDTH = 120;
     private final List<Node> nodes = new ArrayList<>();
     private final List<Edge> edges = new ArrayList<>();
     private Node startNode;
@@ -524,6 +526,7 @@ public class GraphPanel extends JPanel {
                     g2.setStroke(new BasicStroke(2f));
                 }
                 drawArrow(g2, e);
+                drawEdgeText(g2, e);
                 if (e == selectedEdge) {
                     g2.setStroke(old);
                     g2.setColor(Color.BLACK);
@@ -678,6 +681,111 @@ public class GraphPanel extends JPanel {
         }
     }
 
+    /** Draw any text associated with the given edge near its midpoint. */
+    private void drawEdgeText(Graphics2D g2, Edge edge) {
+        String text = edge.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        Point pos;
+        if (edge.getSplineType() == Edge.SplineType.BEZIER) {
+            Point cp = bezierControlPoint(edge.getFrom(), edge.getTo(), edge.getCurvature());
+            Point p1 = boundaryPoint(edge.getFrom(), cp.x, cp.y);
+            Point p2 = boundaryPoint(edge.getTo(), cp.x, cp.y);
+            double mx = 0.25 * p1.x + 0.5 * cp.x + 0.25 * p2.x;
+            double my = 0.25 * p1.y + 0.5 * cp.y + 0.25 * p2.y;
+            pos = new Point((int) Math.round(mx), (int) Math.round(my));
+        } else {
+            Point p1 = boundaryPoint(edge.getFrom(), edge.getTo());
+            Point p2 = boundaryPoint(edge.getTo(), edge.getFrom());
+            pos = new Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+        }
+
+        FontMetrics fm = g2.getFontMetrics();
+        java.util.List<String> lines = wrapText(fm, text, EDGE_TEXT_WRAP_WIDTH);
+        int ascent = fm.getAscent();
+        int descent = fm.getDescent();
+        int lineHeight = ascent + descent;
+        int textHeight = lineHeight * lines.size();
+        int textWidth = 0;
+        for (String line : lines) {
+            textWidth = Math.max(textWidth, fm.stringWidth(line));
+        }
+
+        int centerY = pos.y - 4;
+        int top = centerY - textHeight / 2;
+        int x = pos.x - textWidth / 2;
+
+        Color prev = g2.getColor();
+        g2.setColor(Color.WHITE);
+        g2.fillRect(x - 2, top - 2, textWidth + 4, textHeight + 4);
+        g2.setColor(Color.BLACK);
+        g2.drawRect(x - 2, top - 2, textWidth + 4, textHeight + 4);
+
+        int baseline = top + ascent;
+        for (String line : lines) {
+            int lineWidth = fm.stringWidth(line);
+            g2.drawString(line, pos.x - lineWidth / 2, baseline);
+            baseline += lineHeight;
+        }
+
+        g2.setColor(prev);
+    }
+
+    /**
+     * Break the given text into multiple lines so each line fits within the specified width.
+     */
+    private static java.util.List<String> wrapText(FontMetrics fm, String text, int maxWidth) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return lines;
+        }
+        String[] words = text.split("\\s+");
+        StringBuilder line = new StringBuilder();
+        for (String word : words) {
+            if (line.length() == 0) {
+                if (fm.stringWidth(word) <= maxWidth) {
+                    line.append(word);
+                } else {
+                    splitWord(lines, fm, word, maxWidth);
+                }
+                continue;
+            }
+
+            String candidate = line + " " + word;
+            if (fm.stringWidth(candidate) <= maxWidth) {
+                line.append(' ').append(word);
+            } else {
+                lines.add(line.toString());
+                line.setLength(0);
+                if (fm.stringWidth(word) <= maxWidth) {
+                    line.append(word);
+                } else {
+                    splitWord(lines, fm, word, maxWidth);
+                }
+            }
+        }
+        if (line.length() > 0) {
+            lines.add(line.toString());
+        }
+        return lines;
+    }
+
+    /** Break a long word into multiple lines. */
+    private static void splitWord(java.util.List<String> lines, FontMetrics fm, String word, int maxWidth) {
+        int start = 0;
+        while (start < word.length()) {
+            int end = start + 1;
+            while (end <= word.length() && fm.stringWidth(word.substring(start, end)) <= maxWidth) {
+                end++;
+            }
+            end--;
+            lines.add(word.substring(start, end));
+            start = end;
+        }
+    }
+
     /**
      * Get a snapshot of the currently selected nodes.
      */
@@ -732,6 +840,7 @@ public class GraphPanel extends JPanel {
             if (map.containsKey(e.getFrom()) && map.containsKey(e.getTo())) {
                 Edge ec = new Edge(map.get(e.getFrom()), map.get(e.getTo()), e.getSplineType());
                 ec.setCurvature(e.getCurvature());
+                ec.setText(e.getText());
                 clipboardEdges.add(ec);
             }
         }
@@ -776,6 +885,7 @@ public class GraphPanel extends JPanel {
             if (from != null && to != null) {
                 Edge ec = new Edge(from, to, e.getSplineType());
                 ec.setCurvature(e.getCurvature());
+                ec.setText(e.getText());
                 edges.add(ec);
             }
         }

@@ -14,6 +14,8 @@ public class Edge implements Serializable {
     private SplineType splineType;
     /** Controls the curvature when using a bezier spline. */
     private float curvature;
+    /** Optional text displayed near this edge. */
+    private String text;
 
     public Edge(Node from, Node to) {
         this(from, to, SplineType.STRAIGHT);
@@ -24,6 +26,7 @@ public class Edge implements Serializable {
         this.to = to;
         this.splineType = type;
         this.curvature = 0.4f;
+        this.text = "";
     }
 
     public Node getFrom() {
@@ -54,6 +57,16 @@ public class Edge implements Serializable {
         this.curvature = curvature;
     }
 
+    /** Get the optional text displayed near this edge. */
+    public String getText() {
+        return text == null ? "" : text;
+    }
+
+    /** Set the text to display near this edge. */
+    public void setText(String text) {
+        this.text = text == null ? "" : text;
+    }
+
     /**
      * Update the destination node for this edge.
      */
@@ -69,6 +82,9 @@ public class Edge implements Serializable {
         }
         if (curvature == 0f) {
             curvature = 0.4f;
+        }
+        if (text == null) {
+            text = "";
         }
     }
 }
