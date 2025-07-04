@@ -18,6 +18,8 @@ import me.wphillips.fsmedit.PropertiesPanel;
 import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
+    /** Maximum pixel width for edge text before wrapping occurs. */
+    private static final int EDGE_TEXT_WRAP_WIDTH = 120;
     private final List<Node> nodes = new ArrayList<>();
     private final List<Edge> edges = new ArrayList<>();
     private Node startNode;
@@ -685,6 +687,7 @@ public class GraphPanel extends JPanel {
         if (text == null || text.isEmpty()) {
             return;
         }
+
         Point pos;
         if (edge.getSplineType() == Edge.SplineType.BEZIER) {
             Point cp = bezierControlPoint(edge.getFrom(), edge.getTo(), edge.getCurvature());
@@ -698,22 +701,75 @@ public class GraphPanel extends JPanel {
             Point p2 = boundaryPoint(edge.getTo(), edge.getFrom());
             pos = new Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
         }
+
         FontMetrics fm = g2.getFontMetrics();
+        java.util.List<String> lines = wrapText(fm, text, EDGE_TEXT_WRAP_WIDTH);
         int ascent = fm.getAscent();
         int descent = fm.getDescent();
-        int textWidth = fm.stringWidth(text);
+        int lineHeight = ascent + descent;
+        int textHeight = lineHeight * lines.size();
+        int textWidth = 0;
+        for (String line : lines) {
+            textWidth = Math.max(textWidth, fm.stringWidth(line));
+        }
+
         int centerY = pos.y - 4;
-        int baseline = centerY + (ascent - descent) / 2;
+        int top = centerY - textHeight / 2;
         int x = pos.x - textWidth / 2;
-        int y = baseline - ascent;
 
         Color prev = g2.getColor();
         g2.setColor(Color.WHITE);
-        g2.fillRect(x - 2, y - 2, textWidth + 4, ascent + descent + 4);
+        g2.fillRect(x - 2, top - 2, textWidth + 4, textHeight + 4);
         g2.setColor(Color.BLACK);
-        g2.drawRect(x - 2, y - 2, textWidth + 4, ascent + descent + 4);
-        g2.drawString(text, x, baseline);
+        g2.drawRect(x - 2, top - 2, textWidth + 4, textHeight + 4);
+
+        int baseline = top + ascent;
+        for (String line : lines) {
+            int lineWidth = fm.stringWidth(line);
+            g2.drawString(line, pos.x - lineWidth / 2, baseline);
+            baseline += lineHeight;
+        }
+
         g2.setColor(prev);
+    }
+
+    /**
+     * Break the given text into multiple lines so each line fits within the specified width.
+     */
+    private static java.util.List<String> wrapText(FontMetrics fm, String text, int maxWidth) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return lines;
+        }
+        String[] words = text.split("\\s+");
+        StringBuilder line = new StringBuilder();
+        for (String word : words) {
+            String candidate = line.length() == 0 ? word : line + " " + word;
+            if (fm.stringWidth(candidate) <= maxWidth) {
+                line.setLength(0);
+                line.append(candidate);
+            } else {
+                if (line.length() > 0) {
+                    lines.add(line.toString());
+                    line.setLength(0);
+                }
+                // If the word itself is longer than maxWidth break it mid-word
+                int start = 0;
+                while (start < word.length()) {
+                    int end = start + 1;
+                    while (end <= word.length() && fm.stringWidth(word.substring(start, end)) <= maxWidth) {
+                        end++;
+                    }
+                    end--;
+                    lines.add(word.substring(start, end));
+                    start = end;
+                }
+            }
+        }
+        if (line.length() > 0) {
+            lines.add(line.toString());
+        }
+        return lines;
     }
 
     /**
