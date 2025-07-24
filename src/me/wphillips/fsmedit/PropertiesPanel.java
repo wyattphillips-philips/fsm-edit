@@ -227,7 +227,9 @@ public class PropertiesPanel extends JPanel {
         add(metadataLabel, gbc);
         gbc.gridy++;
         // Show enough space for at least four lines of text
-        metadataArea = new JTextArea(4, 10);
+        metadataArea = new JTextArea();
+        metadataArea.setRows(4);
+        metadataArea.setColumns(10);
         metadataArea.setLineWrap(true);
         metadataArea.setWrapStyleWord(true);
         metadataArea.setEnabled(false);
@@ -242,6 +244,9 @@ public class PropertiesPanel extends JPanel {
             }
         });
         metadataScroll = new JScrollPane(metadataArea);
+        Dimension metaSize = metadataArea.getPreferredScrollableViewportSize();
+        metadataScroll.setPreferredSize(metaSize);
+        metadataScroll.setMinimumSize(metaSize);
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         add(metadataScroll, gbc);
