@@ -14,6 +14,8 @@ public class PropertiesPanel extends JPanel {
     private final JLabel multiSelectLabel;
     private final JLabel labelLabel;
     private final JTextField labelField;
+    private final JLabel idLabel;
+    private final JTextField idField;
     private final JLabel xLabel;
     private final JSpinner xSpinner;
     private final JLabel yLabel;
@@ -78,6 +80,15 @@ public class PropertiesPanel extends JPanel {
         // Add a bit more bottom margin below the label field
         gbc.insets = new Insets(2, 2, 6, 2);
         add(labelField, gbc);
+        // UUID row displayed below the label field
+        gbc.gridy++;
+        gbc.insets = new Insets(2, 2, 2, 2);
+        idLabel = new JLabel("UUID:");
+        add(idLabel, gbc);
+        gbc.gridy++;
+        idField = new JTextField();
+        idField.setEditable(false);
+        add(idField, gbc);
         // Restore default insets for subsequent rows
         gbc.insets = new Insets(2, 2, 2, 2);
 
@@ -265,6 +276,8 @@ public class PropertiesPanel extends JPanel {
         boolean visible = node != null;
         labelLabel.setVisible(visible);
         labelField.setVisible(visible);
+        idLabel.setVisible(visible);
+        idField.setVisible(visible);
         positionPanel.setVisible(visible);
         splineLabel.setVisible(false);
         splineCombo.setVisible(false);
@@ -295,12 +308,14 @@ public class PropertiesPanel extends JPanel {
         }
         if (node == null) {
             labelField.setText("");
+            idField.setText("");
             xSpinner.setValue(0);
             ySpinner.setValue(0);
             colorButton.setBackground(null);
             metadataArea.setText("");
         } else {
             labelField.setText(node.getLabel());
+            idField.setText(node.getId());
             xSpinner.setValue(node.getX());
             ySpinner.setValue(node.getY());
             colorButton.setBackground(node.getColor());
@@ -321,6 +336,8 @@ public class PropertiesPanel extends JPanel {
         multiSelectLabel.setVisible(false);
         labelLabel.setVisible(false);
         labelField.setVisible(false);
+        idLabel.setVisible(visible);
+        idField.setVisible(visible);
         positionPanel.setVisible(false);
         lockPositionCheck.setVisible(false);
         colorLabel.setVisible(false);
@@ -340,10 +357,12 @@ public class PropertiesPanel extends JPanel {
             splineCombo.setSelectedIndex(0);
             curvatureSpinner.setValue(0.4);
             edgeTextField.setText("");
+            idField.setText("");
         } else {
             splineCombo.setSelectedItem(edge.getSplineType());
             curvatureSpinner.setValue((double) edge.getCurvature());
             edgeTextField.setText(edge.getText());
+            idField.setText(edge.getId());
         }
         revalidate();
         repaint();
@@ -360,6 +379,8 @@ public class PropertiesPanel extends JPanel {
             multiSelectLabel.setVisible(false);
             labelLabel.setVisible(false);
             labelField.setVisible(false);
+            idLabel.setVisible(false);
+            idField.setVisible(false);
             positionPanel.setVisible(false);
             splineLabel.setVisible(false);
             splineCombo.setVisible(false);
@@ -394,6 +415,8 @@ public class PropertiesPanel extends JPanel {
         multiSelectLabel.setVisible(true);
         labelLabel.setVisible(false);
         labelField.setVisible(false);
+        idLabel.setVisible(false);
+        idField.setVisible(false);
         positionPanel.setVisible(false);
         splineLabel.setVisible(false);
         splineCombo.setVisible(false);
