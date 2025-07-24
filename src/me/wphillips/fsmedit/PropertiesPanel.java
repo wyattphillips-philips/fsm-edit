@@ -226,8 +226,8 @@ public class PropertiesPanel extends JPanel {
         metadataLabel = new JLabel("Metadata:");
         add(metadataLabel, gbc);
         gbc.gridy++;
-        // Slightly taller area for notes
-        metadataArea = new JTextArea(8, 10);
+        // Show enough space for at least four lines of text
+        metadataArea = new JTextArea(4, 10);
         metadataArea.setLineWrap(true);
         metadataArea.setWrapStyleWord(true);
         metadataArea.setEnabled(false);
