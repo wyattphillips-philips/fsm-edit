@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
 
 import me.wphillips.fsmedit.GraphIO;
 
@@ -108,6 +109,13 @@ public class GraphMenuBar extends JMenuBar {
         gridItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, mask));
         gridItem.addActionListener(e -> panel.setShowGrid(gridItem.isSelected()));
         viewMenu.add(gridItem);
+
+        JCheckBoxMenuItem snapItem = new JCheckBoxMenuItem("Snap to Grid");
+        snapItem.setSelected(panel.isSnapToGrid());
+        snapItem.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_G, InputEvent.SHIFT_DOWN_MASK));
+        snapItem.addActionListener(e -> panel.setSnapToGrid(snapItem.isSelected()));
+        viewMenu.add(snapItem);
 
         add(fileMenu);
         add(editMenu);
