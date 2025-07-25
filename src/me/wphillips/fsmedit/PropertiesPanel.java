@@ -226,7 +226,7 @@ public class PropertiesPanel extends JPanel {
         gbc.gridy++;
         // Show enough space for at least four lines of text
         metadataArea = new JTextArea();
-        metadataArea.setRows(4);
+        metadataArea.setRows(6);
         metadataArea.setColumns(10);
         metadataArea.setLineWrap(true);
         metadataArea.setWrapStyleWord(true);
