@@ -95,7 +95,13 @@ public class GraphMenuBar extends JMenuBar {
 
         JMenu editMenu = new JMenu("Edit");
 
+        JMenu viewMenu = new JMenu("View");
+        JMenuItem resetItem = new JMenuItem("Reset");
+        resetItem.addActionListener(e -> panel.resetView());
+        viewMenu.add(resetItem);
+
         add(fileMenu);
         add(editMenu);
+        add(viewMenu);
     }
 }

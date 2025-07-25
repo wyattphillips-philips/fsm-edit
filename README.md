@@ -11,6 +11,9 @@ On macOS use the **Command** (⌘) key in place of **Ctrl** for these shortcuts.
 * **Drag a selected node** - Move all selected nodes together.
 * **Right-click** - Access context menu with options to add, delete,
   copy or paste nodes. Pasted nodes appear relative to the cursor.
+* **Mouse Wheel** - Zoom in or out around the cursor.
+* **Middle Mouse Drag** - Pan the graph view.
+* **Space + Drag** - Pan when using a trackpad without a middle button.
 * **Ctrl+C / Ctrl+V** (Cmd+C / Cmd+V on macOS) - Copy and paste nodes using the keyboard. Paste
   centers the nodes at the current cursor position.
 * **Delete** - Remove the currently selected node(s).
@@ -18,6 +21,10 @@ On macOS use the **Command** (⌘) key in place of **Ctrl** for these shortcuts.
 ## File Menu
 
 The "File" menu provides options to create a new graph, open an existing one and save the current graph. Data is serialized using Java's built-in object serialization and uses the `.fsm` extension by default. You can also pass a `.fsm` file on the command line or drag a `.fsm` file into the editor window to open it directly.
+
+## View Menu
+
+The "View" menu contains a **Reset** option to restore the default zoom level and pan position.
 
 ## Node Properties
 

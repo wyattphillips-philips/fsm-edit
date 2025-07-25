@@ -6,6 +6,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.awt.Toolkit;
@@ -44,6 +45,17 @@ public class GraphPanel extends JPanel {
     private final java.util.List<Edge> clipboardEdges = new java.util.ArrayList<>();
     private int clipboardCenterX;
     private int clipboardCenterY;
+
+    /** Current zoom level. */
+    private double scale = 1.0;
+    /** Current pan offset in pixels. */
+    private double translateX = 0;
+    /** Current pan offset in pixels. */
+    private double translateY = 0;
+    /** Starting point for panning with the middle mouse button. */
+    private Point panStart;
+    /** Track whether the space key is held for trackpad panning. */
+    private boolean spaceDown;
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -88,7 +100,7 @@ public class GraphPanel extends JPanel {
                 if (p == null) {
                     p = new Point(getWidth() / 2, getHeight() / 2);
                 }
-                pasteClipboard(p.x, p.y);
+                pasteClipboard(screenToWorldX(p.x), screenToWorldY(p.y));
             }
         });
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
@@ -102,12 +114,37 @@ public class GraphPanel extends JPanel {
             }
         });
 
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false), "spaceDown");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), "spaceUp");
+        am.put("spaceDown", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                spaceDown = true;
+            }
+        });
+        am.put("spaceUp", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                spaceDown = false;
+                if (panStart == null) {
+                    setCursor(Cursor.getDefaultCursor());
+                }
+            }
+        });
+
         MouseAdapter handler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isMiddleMouseButton(e) || (spaceDown && SwingUtilities.isLeftMouseButton(e))) {
+                    panStart = e.getPoint();
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                    return;
+                }
                 if (SwingUtilities.isLeftMouseButton(e)) {
+                    int x = screenToWorldX(e.getX());
+                    int y = screenToWorldY(e.getY());
                     if (isMenuShortcutDown(e)) {
-                        Edge edgeHit = getEdgeAt(e.getX(), e.getY());
+                        Edge edgeHit = getEdgeAt(x, y);
                         if (edgeHit != null) {
                             editingEdge = edgeHit;
                             selectedEdge = edgeHit;
@@ -115,17 +152,17 @@ public class GraphPanel extends JPanel {
                                 propertiesPanel.setEdge(selectedEdge);
                             }
                             edgeStart = editingEdge.getFrom();
-                            tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
+                            tempEdgeNode = new Node(x, y, 0, "");
                             edgeTarget = null;
                             repaint();
                             return;
                         }
                     }
-                    Node hit = getNodeAt(e.getX(), e.getY());
+                    Node hit = getNodeAt(x, y);
                     if (hit != null) {
                         if (isMenuShortcutDown(e)) {
                             edgeStart = hit;
-                            tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
+                            tempEdgeNode = new Node(x, y, 0, "");
                             edgeTarget = null;
                             repaint();
                         } else {
@@ -140,8 +177,8 @@ public class GraphPanel extends JPanel {
                             }
                             if (!hit.isLocked()) {
                                 draggedNode = hit;
-                                lastMouseX = e.getX();
-                                lastMouseY = e.getY();
+                                lastMouseX = x;
+                                lastMouseY = y;
                             } else {
                                 draggedNode = null;
                             }
@@ -149,7 +186,7 @@ public class GraphPanel extends JPanel {
                             repaint();
                         }
                     } else {
-                        Edge edgeHit = getEdgeAt(e.getX(), e.getY());
+                        Edge edgeHit = getEdgeAt(x, y);
                         if (edgeHit != null) {
                             selectedNodes.clear();
                             selectedNode = null;
@@ -166,8 +203,8 @@ public class GraphPanel extends JPanel {
                             draggedNode = null;
                             selectedEdge = null;
                             if (!isMenuShortcutDown(e)) {
-                                selectionStart = new Point(e.getX(), e.getY());
-                                selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
+                                selectionStart = new Point(x, y);
+                                selectionRect = new Rectangle(x, y, 0, 0);
                             }
                             if (propertiesPanel != null) {
                                 propertiesPanel.setEdge(null);
@@ -177,17 +214,30 @@ public class GraphPanel extends JPanel {
                         }
                     }
                 } else if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
-                    Node hit = getNodeAt(e.getX(), e.getY());
+                    int x = screenToWorldX(e.getX());
+                    int y = screenToWorldY(e.getY());
+                    Node hit = getNodeAt(x, y);
                     popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     return;
                 }
-                setHoveredNode(getNodeAt(e.getX(), e.getY()));
+                int hx = screenToWorldX(e.getX());
+                int hy = screenToWorldY(e.getY());
+                setHoveredNode(getNodeAt(hx, hy));
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (panStart != null && (SwingUtilities.isMiddleMouseButton(e) || SwingUtilities.isLeftMouseButton(e))) {
+                    panStart = null;
+                    if (!spaceDown) {
+                        setCursor(Cursor.getDefaultCursor());
+                    }
+                    return;
+                }
+                int x = screenToWorldX(e.getX());
+                int y = screenToWorldY(e.getY());
                 if (editingEdge != null) {
-                    Node hit = getNodeAt(e.getX(), e.getY());
+                    Node hit = getNodeAt(x, y);
                     if (hit != null && hit != edgeStart) {
                         editingEdge.setTo(hit);
                         setSplineByExistingEdges(editingEdge);
@@ -207,7 +257,7 @@ public class GraphPanel extends JPanel {
                     edgeTarget = null;
                     repaint();
                 } else if (edgeStart != null) {
-                    Node hit = getNodeAt(e.getX(), e.getY());
+                    Node hit = getNodeAt(x, y);
                     if (hit != null && hit != edgeStart) {
                         addEdge(new Edge(edgeStart, hit));
                     }
@@ -238,19 +288,30 @@ public class GraphPanel extends JPanel {
                     repaint();
                 } else {
                     if (e.isPopupTrigger()) {
-                        Node hit = getNodeAt(e.getX(), e.getY());
+                        Node hit = getNodeAt(x, y);
                         popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     }
                     draggedNode = null;
                 }
-                setHoveredNode(getNodeAt(e.getX(), e.getY()));
+                setHoveredNode(getNodeAt(x, y));
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
+                if (panStart != null) {
+                    int dx = e.getX() - panStart.x;
+                    int dy = e.getY() - panStart.y;
+                    translateX += dx;
+                    translateY += dy;
+                    panStart = e.getPoint();
+                    repaint();
+                    return;
+                }
+                int x = screenToWorldX(e.getX());
+                int y = screenToWorldY(e.getY());
                 if (editingEdge != null) {
-                    tempEdgeNode.setPosition(e.getX(), e.getY());
-                    Node hit = getNodeAt(e.getX(), e.getY());
+                    tempEdgeNode.setPosition(x, y);
+                    Node hit = getNodeAt(x, y);
                     if (hit != null && hit != edgeStart) {
                         edgeTarget = hit;
                     } else {
@@ -258,8 +319,8 @@ public class GraphPanel extends JPanel {
                     }
                     repaint();
                 } else if (edgeStart != null) {
-                    tempEdgeNode.setPosition(e.getX(), e.getY());
-                    Node hit = getNodeAt(e.getX(), e.getY());
+                    tempEdgeNode.setPosition(x, y);
+                    Node hit = getNodeAt(x, y);
                     if (hit != null && hit != edgeStart) {
                         edgeTarget = hit;
                     } else {
@@ -268,8 +329,8 @@ public class GraphPanel extends JPanel {
                     repaint();
                 } else if (draggedNode != null) {
                     if (!draggedNode.isLocked()) {
-                        int dx = e.getX() - lastMouseX;
-                        int dy = e.getY() - lastMouseY;
+                        int dx = x - lastMouseX;
+                        int dy = y - lastMouseY;
                         if (selectedNodes.size() > 1) {
                             for (Node n : selectedNodes) {
                                 if (!n.isLocked()) {
@@ -279,8 +340,8 @@ public class GraphPanel extends JPanel {
                         } else {
                             draggedNode.moveBy(dx, dy);
                         }
-                        lastMouseX = e.getX();
-                        lastMouseY = e.getY();
+                        lastMouseX = x;
+                        lastMouseY = y;
                         if (propertiesPanel != null && selectedNodes.size() == 1) {
                             propertiesPanel.updatePositionFields();
                         }
@@ -289,20 +350,35 @@ public class GraphPanel extends JPanel {
                         draggedNode = null;
                     }
                 } else if (selectionRect != null) {
-                    selectionRect.width = e.getX() - selectionStart.x;
-                    selectionRect.height = e.getY() - selectionStart.y;
+                    selectionRect.width = x - selectionStart.x;
+                    selectionRect.height = y - selectionStart.y;
                     repaint();
                 }
             }
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                setHoveredNode(getNodeAt(e.getX(), e.getY()));
+                int x = screenToWorldX(e.getX());
+                int y = screenToWorldY(e.getY());
+                setHoveredNode(getNodeAt(x, y));
             }
         };
 
         addMouseListener(handler);
         addMouseMotionListener(handler);
+        addMouseWheelListener(e -> {
+            double old = scale;
+            if (e.getPreciseWheelRotation() < 0) {
+                scale *= 1.1;
+            } else {
+                scale /= 1.1;
+            }
+            scale = Math.max(0.1, Math.min(5.0, scale));
+            double factor = scale / old;
+            translateX = e.getX() - factor * (e.getX() - translateX);
+            translateY = e.getY() - factor * (e.getY() - translateY);
+            repaint();
+        });
     }
 
     public void setPropertiesPanel(PropertiesPanel panel) {
@@ -478,6 +554,9 @@ public class GraphPanel extends JPanel {
         edgeStart = null;
         tempEdgeNode = null;
         edgeTarget = null;
+        scale = 1.0;
+        translateX = 0;
+        translateY = 0;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
         }
@@ -511,9 +590,22 @@ public class GraphPanel extends JPanel {
         edgeStart = null;
         tempEdgeNode = null;
         edgeTarget = null;
+        scale = 1.0;
+        translateX = 0;
+        translateY = 0;
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
         }
+        repaint();
+    }
+
+    /**
+     * Reset the zoom and pan settings to their defaults.
+     */
+    public void resetView() {
+        scale = 1.0;
+        translateX = 0;
+        translateY = 0;
         repaint();
     }
 
@@ -521,6 +613,8 @@ public class GraphPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
+        g2.translate(translateX, translateY);
+        g2.scale(scale, scale);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         // Draw edges first
@@ -908,5 +1002,20 @@ public class GraphPanel extends JPanel {
     /** Check if the clipboard currently contains nodes. */
     public boolean hasClipboard() {
         return !clipboardNodes.isEmpty();
+    }
+
+    /** Convert an x-coordinate from screen space to world space. */
+    public int screenToWorldX(int x) {
+        return (int) Math.round((x - translateX) / scale);
+    }
+
+    /** Convert a y-coordinate from screen space to world space. */
+    public int screenToWorldY(int y) {
+        return (int) Math.round((y - translateY) / scale);
+    }
+
+    /** Convert a point from screen space to world space. */
+    public Point screenToWorld(Point p) {
+        return new Point(screenToWorldX(p.x), screenToWorldY(p.y));
     }
 }
