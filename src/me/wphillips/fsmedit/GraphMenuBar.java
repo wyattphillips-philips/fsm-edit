@@ -100,6 +100,11 @@ public class GraphMenuBar extends JMenuBar {
         resetItem.addActionListener(e -> panel.resetView());
         viewMenu.add(resetItem);
 
+        JCheckBoxMenuItem gridItem = new JCheckBoxMenuItem("Show Grid");
+        gridItem.setSelected(panel.isShowGrid());
+        gridItem.addActionListener(e -> panel.setShowGrid(gridItem.isSelected()));
+        viewMenu.add(gridItem);
+
         add(fileMenu);
         add(editMenu);
         add(viewMenu);

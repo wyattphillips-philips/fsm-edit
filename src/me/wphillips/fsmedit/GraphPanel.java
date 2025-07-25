@@ -56,6 +56,8 @@ public class GraphPanel extends JPanel {
     private Point panStart;
     /** Track whether the space key is held for trackpad panning. */
     private boolean spaceDown;
+    /** Whether to draw the background grid. */
+    private boolean showGrid;
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -82,6 +84,7 @@ public class GraphPanel extends JPanel {
     public GraphPanel() {
         popupMenu = new GraphPopupMenu(this);
         menuShortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        showGrid = false;
 
         InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = getActionMap();
@@ -609,6 +612,21 @@ public class GraphPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Check whether the background grid is currently shown.
+     */
+    public boolean isShowGrid() {
+        return showGrid;
+    }
+
+    /**
+     * Set whether the background grid should be displayed.
+     */
+    public void setShowGrid(boolean show) {
+        this.showGrid = show;
+        repaint();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -616,6 +634,32 @@ public class GraphPanel extends JPanel {
         g2.translate(translateX, translateY);
         g2.scale(scale, scale);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if (showGrid) {
+            int spacing = 50;
+            int left = screenToWorldX(0);
+            int right = screenToWorldX(getWidth());
+            int top = screenToWorldY(0);
+            int bottom = screenToWorldY(getHeight());
+
+            int startX = (int) (Math.floor(left / (double) spacing) * spacing);
+            int startY = (int) (Math.floor(top / (double) spacing) * spacing);
+
+            g2.setColor(Color.LIGHT_GRAY);
+            for (int x = startX; x <= right; x += spacing) {
+                if (x == 0) continue;
+                g2.drawLine(x, top, x, bottom);
+            }
+            for (int y = startY; y <= bottom; y += spacing) {
+                if (y == 0) continue;
+                g2.drawLine(left, y, right, y);
+            }
+
+            g2.setColor(Color.RED);
+            g2.drawLine(left, 0, right, 0);
+            g2.setColor(Color.BLUE);
+            g2.drawLine(0, top, 0, bottom);
+        }
 
         // Draw edges first
         g2.setColor(Color.BLACK);
