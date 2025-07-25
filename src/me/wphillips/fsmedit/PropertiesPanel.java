@@ -268,7 +268,8 @@ public class PropertiesPanel extends JPanel {
         gbc.weightx = 1.0;
         idValue = new JLabel();
         add(idValue, gbc);
-        setPreferredSize(new Dimension(180, 0));
+        // Wider panel so the UUID fits without wrapping
+        setPreferredSize(new Dimension(300, 0));
 
         // Start with no node selected so the fields are hidden initially
         setNodes(java.util.Collections.emptyList());
