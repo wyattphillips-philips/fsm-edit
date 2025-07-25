@@ -2,6 +2,8 @@ package me.wphillips.fsmedit;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 
 import me.wphillips.fsmedit.GraphIO;
 
@@ -99,6 +101,13 @@ public class GraphMenuBar extends JMenuBar {
         JMenuItem resetItem = new JMenuItem("Reset");
         resetItem.addActionListener(e -> panel.resetView());
         viewMenu.add(resetItem);
+
+        JCheckBoxMenuItem gridItem = new JCheckBoxMenuItem("Show Grid");
+        gridItem.setSelected(panel.isShowGrid());
+        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        gridItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, mask));
+        gridItem.addActionListener(e -> panel.setShowGrid(gridItem.isSelected()));
+        viewMenu.add(gridItem);
 
         add(fileMenu);
         add(editMenu);
