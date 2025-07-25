@@ -637,6 +637,7 @@ public class GraphPanel extends JPanel {
 
         if (showGrid) {
             int spacing = 50;
+            int majorSpacing = spacing * 5;
             int left = screenToWorldX(0);
             int right = screenToWorldX(getWidth());
             int top = screenToWorldY(0);
@@ -645,13 +646,14 @@ public class GraphPanel extends JPanel {
             int startX = (int) (Math.floor(left / (double) spacing) * spacing);
             int startY = (int) (Math.floor(top / (double) spacing) * spacing);
 
-            g2.setColor(Color.LIGHT_GRAY);
             for (int x = startX; x <= right; x += spacing) {
                 if (x == 0) continue;
+                g2.setColor(x % majorSpacing == 0 ? Color.GRAY : Color.LIGHT_GRAY);
                 g2.drawLine(x, top, x, bottom);
             }
             for (int y = startY; y <= bottom; y += spacing) {
                 if (y == 0) continue;
+                g2.setColor(y % majorSpacing == 0 ? Color.GRAY : Color.LIGHT_GRAY);
                 g2.drawLine(left, y, right, y);
             }
 
