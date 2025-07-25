@@ -14,6 +14,8 @@ public class PropertiesPanel extends JPanel {
     private final JLabel multiSelectLabel;
     private final JLabel labelLabel;
     private final JTextField labelField;
+    private final JLabel idLabel;
+    private final JLabel idValue;
     private final JLabel xLabel;
     private final JSpinner xSpinner;
     private final JLabel yLabel;
@@ -89,7 +91,6 @@ public class PropertiesPanel extends JPanel {
         xLabel = new JLabel("X:");
         positionPanel.add(xLabel);
         xSpinner = new JSpinner(new SpinnerNumberModel(0, -10000, 10000, 1));
-        xSpinner.setPreferredSize(new Dimension(60, xSpinner.getPreferredSize().height));
         xSpinner.setEnabled(false);
         xSpinner.addChangeListener(new ChangeListener() {
             @Override
@@ -106,7 +107,6 @@ public class PropertiesPanel extends JPanel {
         yLabel = new JLabel("Y:");
         positionPanel.add(yLabel);
         ySpinner = new JSpinner(new SpinnerNumberModel(0, -10000, 10000, 1));
-        ySpinner.setPreferredSize(new Dimension(60, ySpinner.getPreferredSize().height));
         ySpinner.setEnabled(false);
         ySpinner.addChangeListener(new ChangeListener() {
             @Override
@@ -224,8 +224,10 @@ public class PropertiesPanel extends JPanel {
         metadataLabel = new JLabel("Metadata:");
         add(metadataLabel, gbc);
         gbc.gridy++;
-        // Slightly taller area for notes
-        metadataArea = new JTextArea(8, 10);
+        // Show enough space for at least four lines of text
+        metadataArea = new JTextArea();
+        metadataArea.setRows(6);
+        metadataArea.setColumns(10);
         metadataArea.setLineWrap(true);
         metadataArea.setWrapStyleWord(true);
         metadataArea.setEnabled(false);
@@ -240,15 +242,32 @@ public class PropertiesPanel extends JPanel {
             }
         });
         metadataScroll = new JScrollPane(metadataArea);
+        Dimension metaSize = metadataArea.getPreferredScrollableViewportSize();
+        metadataScroll.setPreferredSize(metaSize);
+        metadataScroll.setMinimumSize(metaSize);
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         add(metadataScroll, gbc);
 
-        gbc.weighty = 1;
+        // Fill remaining space so the UUID is pinned to the bottom
         gbc.gridy++;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weighty = 1;
         add(Box.createVerticalGlue(), gbc);
-        setPreferredSize(new Dimension(180, 0));
+
+        // UUID displayed at the bottom of the panel
+        gbc.gridy++;
+        gbc.weighty = 0;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        idLabel = new JLabel("UUID:");
+        add(idLabel, gbc);
+        gbc.gridy++;
+        gbc.weightx = 1.0;
+        idValue = new JLabel();
+        add(idValue, gbc);
+        // Wider panel so the UUID fits without wrapping
+        setPreferredSize(new Dimension(300, 0));
 
         // Start with no node selected so the fields are hidden initially
         setNodes(java.util.Collections.emptyList());
@@ -265,6 +284,8 @@ public class PropertiesPanel extends JPanel {
         boolean visible = node != null;
         labelLabel.setVisible(visible);
         labelField.setVisible(visible);
+        idLabel.setVisible(visible);
+        idValue.setVisible(visible);
         positionPanel.setVisible(visible);
         splineLabel.setVisible(false);
         splineCombo.setVisible(false);
@@ -295,12 +316,14 @@ public class PropertiesPanel extends JPanel {
         }
         if (node == null) {
             labelField.setText("");
+            idValue.setText("");
             xSpinner.setValue(0);
             ySpinner.setValue(0);
             colorButton.setBackground(null);
             metadataArea.setText("");
         } else {
             labelField.setText(node.getLabel());
+            idValue.setText(node.getId());
             xSpinner.setValue(node.getX());
             ySpinner.setValue(node.getY());
             colorButton.setBackground(node.getColor());
@@ -321,6 +344,8 @@ public class PropertiesPanel extends JPanel {
         multiSelectLabel.setVisible(false);
         labelLabel.setVisible(false);
         labelField.setVisible(false);
+        idLabel.setVisible(visible);
+        idValue.setVisible(visible);
         positionPanel.setVisible(false);
         lockPositionCheck.setVisible(false);
         colorLabel.setVisible(false);
@@ -340,10 +365,12 @@ public class PropertiesPanel extends JPanel {
             splineCombo.setSelectedIndex(0);
             curvatureSpinner.setValue(0.4);
             edgeTextField.setText("");
+            idValue.setText("");
         } else {
             splineCombo.setSelectedItem(edge.getSplineType());
             curvatureSpinner.setValue((double) edge.getCurvature());
             edgeTextField.setText(edge.getText());
+            idValue.setText(edge.getId());
         }
         revalidate();
         repaint();
@@ -360,6 +387,8 @@ public class PropertiesPanel extends JPanel {
             multiSelectLabel.setVisible(false);
             labelLabel.setVisible(false);
             labelField.setVisible(false);
+            idLabel.setVisible(false);
+            idValue.setVisible(false);
             positionPanel.setVisible(false);
             splineLabel.setVisible(false);
             splineCombo.setVisible(false);
@@ -394,6 +423,8 @@ public class PropertiesPanel extends JPanel {
         multiSelectLabel.setVisible(true);
         labelLabel.setVisible(false);
         labelField.setVisible(false);
+        idLabel.setVisible(false);
+        idValue.setVisible(false);
         positionPanel.setVisible(false);
         splineLabel.setVisible(false);
         splineCombo.setVisible(false);

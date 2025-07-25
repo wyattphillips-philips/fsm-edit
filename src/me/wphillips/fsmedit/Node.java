@@ -2,6 +2,7 @@ package me.wphillips.fsmedit;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.util.UUID;
 
 public class Node implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -11,6 +12,8 @@ public class Node implements Serializable {
     private int radius;
     private String label;
     private Color color;
+    /** Unique identifier for this node. */
+    private String id;
     /** Additional notes attached to the node. */
     private String metadata;
     /** Whether the node's position is locked. */
@@ -26,6 +29,7 @@ public class Node implements Serializable {
         this.radius = radius;
         this.label = label;
         this.color = color;
+        this.id = UUID.randomUUID().toString();
         this.metadata = "";
         this.locked = false;
     }
@@ -54,6 +58,11 @@ public class Node implements Serializable {
 
     public String getLabel() {
         return label;
+    }
+
+    /** Get the unique identifier for this node. */
+    public String getId() {
+        return id;
     }
 
     public void setLabel(String label) {
@@ -125,5 +134,19 @@ public class Node implements Serializable {
         int dx = px - x;
         int dy = py - y;
         return dx * dx + dy * dy <= radius * radius;
+    }
+
+    /**
+     * Ensure newly deserialized nodes have a UUID.
+     */
+    private void readObject(java.io.ObjectInputStream in)
+            throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (id == null || id.isEmpty()) {
+            id = UUID.randomUUID().toString();
+        }
+        if (metadata == null) {
+            metadata = "";
+        }
     }
 }
