@@ -599,6 +599,16 @@ public class GraphPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Reset the zoom and pan settings to their defaults.
+     */
+    public void resetView() {
+        scale = 1.0;
+        translateX = 0;
+        translateY = 0;
+        repaint();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

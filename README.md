@@ -22,6 +22,10 @@ On macOS use the **Command** (⌘) key in place of **Ctrl** for these shortcuts.
 
 The "File" menu provides options to create a new graph, open an existing one and save the current graph. Data is serialized using Java's built-in object serialization and uses the `.fsm` extension by default. You can also pass a `.fsm` file on the command line or drag a `.fsm` file into the editor window to open it directly.
 
+## View Menu
+
+The "View" menu contains a **Reset** option to restore the default zoom level and pan position.
+
 ## Node Properties
 
 The node properties panel includes a **Lock Position** checkbox. When checked,
