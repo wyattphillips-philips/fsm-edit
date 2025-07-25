@@ -251,20 +251,23 @@ public class PropertiesPanel extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         add(metadataScroll, gbc);
 
+        // Fill remaining space so the UUID is pinned to the bottom
+        gbc.gridy++;
+        gbc.weighty = 1;
+        add(Box.createVerticalGlue(), gbc);
+
         // UUID displayed at the bottom of the panel
         gbc.gridy++;
+        gbc.weighty = 0;
         gbc.weightx = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
         idLabel = new JLabel("UUID:");
         add(idLabel, gbc);
         gbc.gridy++;
         gbc.weightx = 1.0;
         idValue = new JLabel();
         add(idValue, gbc);
-
-        gbc.weighty = 1;
-        gbc.gridy++;
-        add(Box.createVerticalGlue(), gbc);
         setPreferredSize(new Dimension(180, 0));
 
         // Start with no node selected so the fields are hidden initially
