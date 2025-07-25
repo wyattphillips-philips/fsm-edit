@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
+import java.awt.Toolkit;
 import java.awt.BasicStroke;
 import java.awt.Cursor;
 import java.awt.Stroke;
@@ -38,6 +39,7 @@ public class GraphPanel extends JPanel {
     private Edge editingEdge;
     private Edge selectedEdge;
     private final GraphPopupMenu popupMenu;
+    private final int menuShortcutMask;
     private final java.util.List<Node> clipboardNodes = new java.util.ArrayList<>();
     private final java.util.List<Edge> clipboardEdges = new java.util.ArrayList<>();
     private int clipboardCenterX;
@@ -61,19 +63,24 @@ public class GraphPanel extends JPanel {
         }
     }
 
+    private boolean isMenuShortcutDown(InputEvent e) {
+        return (e.getModifiersEx() & menuShortcutMask) != 0;
+    }
+
     public GraphPanel() {
         popupMenu = new GraphPopupMenu(this);
+        menuShortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
         InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = getActionMap();
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "copy");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutMask), "copy");
         am.put("copy", new AbstractAction() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 copyContext(hoveredNode);
             }
         });
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK), "paste");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutMask), "paste");
         am.put("paste", new AbstractAction() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -99,7 +106,7 @@ public class GraphPanel extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    if (e.isControlDown()) {
+                    if (isMenuShortcutDown(e)) {
                         Edge edgeHit = getEdgeAt(e.getX(), e.getY());
                         if (edgeHit != null) {
                             editingEdge = edgeHit;
@@ -116,7 +123,7 @@ public class GraphPanel extends JPanel {
                     }
                     Node hit = getNodeAt(e.getX(), e.getY());
                     if (hit != null) {
-                        if (e.isControlDown()) {
+                        if (isMenuShortcutDown(e)) {
                             edgeStart = hit;
                             tempEdgeNode = new Node(e.getX(), e.getY(), 0, "");
                             edgeTarget = null;
@@ -158,7 +165,7 @@ public class GraphPanel extends JPanel {
                             selectedNode = null;
                             draggedNode = null;
                             selectedEdge = null;
-                            if (!e.isControlDown()) {
+                            if (!isMenuShortcutDown(e)) {
                                 selectionStart = new Point(e.getX(), e.getY());
                                 selectionRect = new Rectangle(e.getX(), e.getY(), 0, 0);
                             }

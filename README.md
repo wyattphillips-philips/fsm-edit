@@ -3,13 +3,15 @@ Finite state machine editor.
 
 ## Controls
 
+On macOS use the **Command** (⌘) key in place of **Ctrl** for these shortcuts.
+
 * **Ctrl + Drag** - Create a new edge from one node to another.
 * **Ctrl + Drag an edge** - Change its destination or drop on empty space to delete it.
 * **Drag on empty space** - Box select multiple nodes.
 * **Drag a selected node** - Move all selected nodes together.
 * **Right-click** - Access context menu with options to add, delete,
   copy or paste nodes. Pasted nodes appear relative to the cursor.
-* **Ctrl+C / Ctrl+V** - Copy and paste nodes using the keyboard. Paste
+* **Ctrl+C / Ctrl+V** (Cmd+C / Cmd+V on macOS) - Copy and paste nodes using the keyboard. Paste
   centers the nodes at the current cursor position.
 * **Delete** - Remove the currently selected node(s).
 
