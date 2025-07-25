@@ -64,6 +64,11 @@ public class GraphPanel extends JPanel {
     /** Original positions of nodes when a drag begins. */
     private final java.util.Map<Node, Point> dragStart = new java.util.HashMap<>();
 
+    /** Latest mouse position in world coordinates. */
+    private int mouseX;
+    /** Latest mouse position in world coordinates. */
+    private int mouseY;
+
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
      * is repainted only when the hovered node actually changes.
@@ -84,6 +89,12 @@ public class GraphPanel extends JPanel {
 
     private boolean isMenuShortcutDown(InputEvent e) {
         return (e.getModifiersEx() & menuShortcutMask) != 0;
+    }
+
+    /** Record the current mouse position in world coordinates. */
+    private void updateMousePosition(MouseEvent e) {
+        mouseX = screenToWorldX(e.getX());
+        mouseY = screenToWorldY(e.getY());
     }
 
     public GraphPanel() {
@@ -145,6 +156,7 @@ public class GraphPanel extends JPanel {
         MouseAdapter handler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                updateMousePosition(e);
                 if (SwingUtilities.isMiddleMouseButton(e) || (spaceDown && SwingUtilities.isLeftMouseButton(e))) {
                     panStart = e.getPoint();
                     setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -243,6 +255,7 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                updateMousePosition(e);
                 if (panStart != null && (SwingUtilities.isMiddleMouseButton(e) || SwingUtilities.isLeftMouseButton(e))) {
                     panStart = null;
                     if (!spaceDown) {
@@ -315,6 +328,7 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseDragged(MouseEvent e) {
+                updateMousePosition(e);
                 if (panStart != null) {
                     int dx = e.getX() - panStart.x;
                     int dy = e.getY() - panStart.y;
@@ -384,9 +398,11 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                int x = screenToWorldX(e.getX());
-                int y = screenToWorldY(e.getY());
+                updateMousePosition(e);
+                int x = mouseX;
+                int y = mouseY;
                 setHoveredNode(getNodeAt(x, y));
+                repaint();
             }
         };
 
@@ -668,6 +684,7 @@ public class GraphPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
+        java.awt.geom.AffineTransform original = g2.getTransform();
         g2.translate(translateX, translateY);
         g2.scale(scale, scale);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -748,6 +765,14 @@ public class GraphPanel extends JPanel {
             g2.drawRect(r.x, r.y, r.width, r.height);
             g2.setStroke(old);
         }
+
+        // Draw mouse coordinates in screen space
+        g2.setTransform(original);
+        g2.setColor(Color.RED);
+        String coords = "x=" + mouseX + " y=" + mouseY;
+        FontMetrics fm = g2.getFontMetrics();
+        int textY = getHeight() - fm.getDescent() - 4;
+        g2.drawString(coords, 4, textY);
     }
 
     private void drawNode(Graphics2D g2, Node n) {
