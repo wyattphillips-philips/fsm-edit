@@ -15,6 +15,8 @@ import java.awt.Stroke;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class GraphPanel extends JPanel {
     /** Maximum pixel width for edge text before wrapping occurs. */
@@ -59,6 +61,8 @@ public class GraphPanel extends JPanel {
     private final int gridSpacing = 10;
     /** Whether to snap nodes to the grid while dragging. */
     private boolean snapToGrid;
+    /** Offsets from the mouse to each node when dragging starts. */
+    private final java.util.Map<Node, Point> dragOffsets = new java.util.HashMap<>();
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -184,8 +188,13 @@ public class GraphPanel extends JPanel {
                                 draggedNode = hit;
                                 lastMouseX = x;
                                 lastMouseY = y;
+                                dragOffsets.clear();
+                                for (Node n : selectedNodes) {
+                                    dragOffsets.put(n, new Point(n.getX() - x, n.getY() - y));
+                                }
                             } else {
                                 draggedNode = null;
+                                dragOffsets.clear();
                             }
                             selectedEdge = null;
                             repaint();
@@ -196,6 +205,7 @@ public class GraphPanel extends JPanel {
                             selectedNodes.clear();
                             selectedNode = null;
                             draggedNode = null;
+                            dragOffsets.clear();
                             selectedEdge = edgeHit;
                             if (propertiesPanel != null) {
                                 propertiesPanel.setNodes(java.util.Collections.emptyList());
@@ -206,6 +216,7 @@ public class GraphPanel extends JPanel {
                             selectedNodes.clear();
                             selectedNode = null;
                             draggedNode = null;
+                            dragOffsets.clear();
                             selectedEdge = null;
                             if (!isMenuShortcutDown(e)) {
                                 selectionStart = new Point(x, y);
@@ -297,6 +308,7 @@ public class GraphPanel extends JPanel {
                         popupMenu.showMenu(GraphPanel.this, e.getX(), e.getY(), hit);
                     }
                     draggedNode = null;
+                    dragOffsets.clear();
                 }
                 setHoveredNode(getNodeAt(x, y));
             }
@@ -334,13 +346,15 @@ public class GraphPanel extends JPanel {
                     repaint();
                 } else if (draggedNode != null) {
                     if (!draggedNode.isLocked()) {
-                        int dx = x - lastMouseX;
-                        int dy = y - lastMouseY;
                         if (selectedNodes.size() > 1) {
                             for (Node n : selectedNodes) {
                                 if (!n.isLocked()) {
-                                    int nx = n.getX() + dx;
-                                    int ny = n.getY() + dy;
+                                    Point off = dragOffsets.get(n);
+                                    if (off == null) {
+                                        off = new Point(n.getX() - lastMouseX, n.getY() - lastMouseY);
+                                    }
+                                    int nx = x + off.x;
+                                    int ny = y + off.y;
                                     if (snapToGrid) {
                                         nx = snapCoord(nx);
                                         ny = snapCoord(ny);
@@ -349,8 +363,12 @@ public class GraphPanel extends JPanel {
                                 }
                             }
                         } else {
-                            int nx = draggedNode.getX() + dx;
-                            int ny = draggedNode.getY() + dy;
+                            Point off = dragOffsets.get(draggedNode);
+                            if (off == null) {
+                                off = new Point(draggedNode.getX() - lastMouseX, draggedNode.getY() - lastMouseY);
+                            }
+                            int nx = x + off.x;
+                            int ny = y + off.y;
                             if (snapToGrid) {
                                 nx = snapCoord(nx);
                                 ny = snapCoord(ny);
@@ -365,6 +383,7 @@ public class GraphPanel extends JPanel {
                         repaint();
                     } else {
                         draggedNode = null;
+                        dragOffsets.clear();
                     }
                 } else if (selectionRect != null) {
                     selectionRect.width = x - selectionStart.x;
@@ -567,6 +586,7 @@ public class GraphPanel extends JPanel {
         selectedEdge = null;
         hoveredNode = null;
         draggedNode = null;
+        dragOffsets.clear();
         editingEdge = null;
         edgeStart = null;
         tempEdgeNode = null;
@@ -603,6 +623,7 @@ public class GraphPanel extends JPanel {
         selectedEdge = null;
         hoveredNode = null;
         draggedNode = null;
+        dragOffsets.clear();
         editingEdge = null;
         edgeStart = null;
         tempEdgeNode = null;
