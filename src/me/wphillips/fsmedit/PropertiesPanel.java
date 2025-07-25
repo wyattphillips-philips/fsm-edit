@@ -91,7 +91,6 @@ public class PropertiesPanel extends JPanel {
         xLabel = new JLabel("X:");
         positionPanel.add(xLabel);
         xSpinner = new JSpinner(new SpinnerNumberModel(0, -10000, 10000, 1));
-        xSpinner.setPreferredSize(new Dimension(60, xSpinner.getPreferredSize().height));
         xSpinner.setEnabled(false);
         xSpinner.addChangeListener(new ChangeListener() {
             @Override
@@ -108,7 +107,6 @@ public class PropertiesPanel extends JPanel {
         yLabel = new JLabel("Y:");
         positionPanel.add(yLabel);
         ySpinner = new JSpinner(new SpinnerNumberModel(0, -10000, 10000, 1));
-        ySpinner.setPreferredSize(new Dimension(60, ySpinner.getPreferredSize().height));
         ySpinner.setEnabled(false);
         ySpinner.addChangeListener(new ChangeListener() {
             @Override
