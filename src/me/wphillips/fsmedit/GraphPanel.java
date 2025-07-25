@@ -646,21 +646,28 @@ public class GraphPanel extends JPanel {
             int startX = (int) (Math.floor(left / (double) spacing) * spacing);
             int startY = (int) (Math.floor(top / (double) spacing) * spacing);
 
+            Stroke oldStroke = g2.getStroke();
+            g2.setStroke(new BasicStroke(0.5f));
+            Color minor = new Color(200, 200, 200, 80);
+            Color major = new Color(160, 160, 160, 120);
+
             for (int x = startX; x <= right; x += spacing) {
                 if (x == 0) continue;
-                g2.setColor(x % majorSpacing == 0 ? Color.GRAY : Color.LIGHT_GRAY);
+                g2.setColor(x % majorSpacing == 0 ? major : minor);
                 g2.drawLine(x, top, x, bottom);
             }
             for (int y = startY; y <= bottom; y += spacing) {
                 if (y == 0) continue;
-                g2.setColor(y % majorSpacing == 0 ? Color.GRAY : Color.LIGHT_GRAY);
+                g2.setColor(y % majorSpacing == 0 ? major : minor);
                 g2.drawLine(left, y, right, y);
             }
 
-            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(1f));
+            g2.setColor(new Color(255, 0, 0, 150));
             g2.drawLine(left, 0, right, 0);
-            g2.setColor(Color.BLUE);
+            g2.setColor(new Color(0, 0, 255, 150));
             g2.drawLine(0, top, 0, bottom);
+            g2.setStroke(oldStroke);
         }
 
         // Draw edges first
