@@ -6,7 +6,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 import java.awt.Toolkit;
@@ -16,8 +15,6 @@ import java.awt.Stroke;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import me.wphillips.fsmedit.PropertiesPanel;
-import me.wphillips.fsmedit.GraphIO;
 
 public class GraphPanel extends JPanel {
     /** Maximum pixel width for edge text before wrapping occurs. */
@@ -58,6 +55,8 @@ public class GraphPanel extends JPanel {
     private boolean spaceDown;
     /** Whether to draw the background grid. */
     private boolean showGrid;
+    /** Grid spacing per square in pixels. */
+    private final int gridSpacing = 10;
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -636,7 +635,7 @@ public class GraphPanel extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         if (showGrid) {
-            int spacing = 50;
+            int spacing = gridSpacing;
             int majorSpacing = spacing * 5;
             int left = screenToWorldX(0);
             int right = screenToWorldX(getWidth());
