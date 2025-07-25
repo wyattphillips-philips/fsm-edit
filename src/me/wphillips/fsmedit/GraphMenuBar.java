@@ -109,6 +109,11 @@ public class GraphMenuBar extends JMenuBar {
         gridItem.addActionListener(e -> panel.setShowGrid(gridItem.isSelected()));
         viewMenu.add(gridItem);
 
+        JCheckBoxMenuItem snapItem = new JCheckBoxMenuItem("Snap to Grid");
+        snapItem.setSelected(panel.isSnapToGrid());
+        snapItem.addActionListener(e -> panel.setSnapToGrid(snapItem.isSelected()));
+        viewMenu.add(snapItem);
+
         add(fileMenu);
         add(editMenu);
         add(viewMenu);

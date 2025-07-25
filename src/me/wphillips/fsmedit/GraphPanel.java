@@ -57,6 +57,8 @@ public class GraphPanel extends JPanel {
     private boolean showGrid;
     /** Grid spacing per square in pixels. */
     private final int gridSpacing = 10;
+    /** Whether to snap nodes to the grid while dragging. */
+    private boolean snapToGrid;
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -84,6 +86,7 @@ public class GraphPanel extends JPanel {
         popupMenu = new GraphPopupMenu(this);
         menuShortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         showGrid = false;
+        snapToGrid = false;
 
         InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = getActionMap();
@@ -336,11 +339,23 @@ public class GraphPanel extends JPanel {
                         if (selectedNodes.size() > 1) {
                             for (Node n : selectedNodes) {
                                 if (!n.isLocked()) {
-                                    n.moveBy(dx, dy);
+                                    int nx = n.getX() + dx;
+                                    int ny = n.getY() + dy;
+                                    if (snapToGrid) {
+                                        nx = snapCoord(nx);
+                                        ny = snapCoord(ny);
+                                    }
+                                    n.setPosition(nx, ny);
                                 }
                             }
                         } else {
-                            draggedNode.moveBy(dx, dy);
+                            int nx = draggedNode.getX() + dx;
+                            int ny = draggedNode.getY() + dy;
+                            if (snapToGrid) {
+                                nx = snapCoord(nx);
+                                ny = snapCoord(ny);
+                            }
+                            draggedNode.setPosition(nx, ny);
                         }
                         lastMouseX = x;
                         lastMouseY = y;
@@ -624,6 +639,16 @@ public class GraphPanel extends JPanel {
     public void setShowGrid(boolean show) {
         this.showGrid = show;
         repaint();
+    }
+
+    /** Check whether node dragging snaps to the grid. */
+    public boolean isSnapToGrid() {
+        return snapToGrid;
+    }
+
+    /** Enable or disable snapping nodes to the grid while dragging. */
+    public void setSnapToGrid(boolean snap) {
+        this.snapToGrid = snap;
     }
 
     @Override
@@ -1069,5 +1094,10 @@ public class GraphPanel extends JPanel {
     /** Convert a point from screen space to world space. */
     public Point screenToWorld(Point p) {
         return new Point(screenToWorldX(p.x), screenToWorldY(p.y));
+    }
+
+    /** Round a coordinate to the nearest grid intersection. */
+    private int snapCoord(int v) {
+        return Math.round(v / (float) gridSpacing) * gridSpacing;
     }
 }
