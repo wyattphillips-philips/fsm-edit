@@ -11,6 +11,8 @@ On macOS use the **Command** (⌘) key in place of **Ctrl** for these shortcuts.
 * **Drag a selected node** - Move all selected nodes together.
 * **Right-click** - Access context menu with options to add, delete,
   copy or paste nodes. Pasted nodes appear relative to the cursor.
+* **Mouse Wheel** - Zoom in or out around the cursor.
+* **Middle Mouse Drag** - Pan the graph view.
 * **Ctrl+C / Ctrl+V** (Cmd+C / Cmd+V on macOS) - Copy and paste nodes using the keyboard. Paste
   centers the nodes at the current cursor position.
 * **Delete** - Remove the currently selected node(s).

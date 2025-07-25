@@ -20,7 +20,9 @@ public class GraphPopupMenu extends JPopupMenu {
 
         JMenuItem addNodeItem = new JMenuItem("Add Node");
         addNodeItem.addActionListener(e -> {
-            Node node = new Node(x, y, 30, "N" + (panel.getNodeCount() + 1));
+            int wx = panel.screenToWorldX(x);
+            int wy = panel.screenToWorldY(y);
+            Node node = new Node(wx, wy, 30, "N" + (panel.getNodeCount() + 1));
             panel.addNode(node);
             panel.repaint();
         });
@@ -45,7 +47,11 @@ public class GraphPopupMenu extends JPopupMenu {
         add(copyItem);
 
         pasteItem = new JMenuItem("Paste");
-        pasteItem.addActionListener(e -> panel.pasteClipboard(x, y));
+        pasteItem.addActionListener(e -> {
+            int wx = panel.screenToWorldX(x);
+            int wy = panel.screenToWorldY(y);
+            panel.pasteClipboard(wx, wy);
+        });
         add(pasteItem);
     }
 
