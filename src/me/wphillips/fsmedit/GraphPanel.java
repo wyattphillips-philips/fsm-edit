@@ -54,6 +54,8 @@ public class GraphPanel extends JPanel {
     private double translateY = 0;
     /** Starting point for panning with the middle mouse button. */
     private Point panStart;
+    /** Track whether the space key is held for trackpad panning. */
+    private boolean spaceDown;
 
     /**
      * Update which node is currently hovered and adjust the cursor. The panel
@@ -112,10 +114,28 @@ public class GraphPanel extends JPanel {
             }
         });
 
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false), "spaceDown");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), "spaceUp");
+        am.put("spaceDown", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                spaceDown = true;
+            }
+        });
+        am.put("spaceUp", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                spaceDown = false;
+                if (panStart == null) {
+                    setCursor(Cursor.getDefaultCursor());
+                }
+            }
+        });
+
         MouseAdapter handler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isMiddleMouseButton(e)) {
+                if (SwingUtilities.isMiddleMouseButton(e) || (spaceDown && SwingUtilities.isLeftMouseButton(e))) {
                     panStart = e.getPoint();
                     setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                     return;
@@ -207,9 +227,11 @@ public class GraphPanel extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (SwingUtilities.isMiddleMouseButton(e) && panStart != null) {
+                if (panStart != null && (SwingUtilities.isMiddleMouseButton(e) || SwingUtilities.isLeftMouseButton(e))) {
                     panStart = null;
-                    setCursor(Cursor.getDefaultCursor());
+                    if (!spaceDown) {
+                        setCursor(Cursor.getDefaultCursor());
+                    }
                     return;
                 }
                 int x = screenToWorldX(e.getX());
