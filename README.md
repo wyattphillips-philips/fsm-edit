@@ -1,6 +1,8 @@
 # fsm-edit
 Finite state machine editor.
 
+![Demo Screenshot](https://media.githubusercontent.com/media/wyattphillips-philips/fsm-edit/refs/heads/main/docs/demo/screenshot_01.png)
+
 ## Controls
 
 On macOS use the **Command** (⌘) key in place of **Ctrl** for these shortcuts.
