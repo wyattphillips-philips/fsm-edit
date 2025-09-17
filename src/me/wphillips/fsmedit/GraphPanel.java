@@ -46,6 +46,9 @@ public class GraphPanel extends JPanel {
     private int clipboardCenterX;
     private int clipboardCenterY;
 
+    /** Listeners notified when the user selects a node. */
+    private final List<NodeSelectionListener> nodeSelectionListeners = new ArrayList<>();
+
     /** Detected cycles from the most recent analysis. */
     private final List<List<Edge>> cycleAnalysisLoops = new ArrayList<>();
     /** Index of the currently highlighted cycle. */
@@ -207,6 +210,7 @@ public class GraphPanel extends JPanel {
                                 dragStart.clear();
                             }
                             selectedEdge = null;
+                            fireNodeSelection(hit);
                             repaint();
                         }
                     } else {
@@ -415,6 +419,34 @@ public class GraphPanel extends JPanel {
             translateY = e.getY() - factor * (e.getY() - translateY);
             repaint();
         });
+    }
+
+    /** Listener notified when a node is selected via mouse click. */
+    public interface NodeSelectionListener {
+        void nodeSelected(Node node);
+    }
+
+    /** Register a listener for node selection events. */
+    public void addNodeSelectionListener(NodeSelectionListener listener) {
+        if (listener != null && !nodeSelectionListeners.contains(listener)) {
+            nodeSelectionListeners.add(listener);
+        }
+    }
+
+    /** Remove a previously registered node selection listener. */
+    public void removeNodeSelectionListener(NodeSelectionListener listener) {
+        nodeSelectionListeners.remove(listener);
+    }
+
+    /** Notify listeners about a node selection. */
+    private void fireNodeSelection(Node node) {
+        if (nodeSelectionListeners.isEmpty()) {
+            return;
+        }
+        java.util.List<NodeSelectionListener> listeners = new ArrayList<>(nodeSelectionListeners);
+        for (NodeSelectionListener listener : listeners) {
+            listener.nodeSelected(node);
+        }
     }
 
     public void setPropertiesPanel(PropertiesPanel panel) {
