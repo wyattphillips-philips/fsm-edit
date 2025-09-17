@@ -3,6 +3,7 @@ package me.wphillips.fsmedit;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.InputEvent;
 
@@ -117,8 +118,28 @@ public class GraphMenuBar extends JMenuBar {
         snapItem.addActionListener(e -> panel.setSnapToGrid(snapItem.isSelected()));
         viewMenu.add(snapItem);
 
+        JMenu toolsMenu = new JMenu("Tools");
+        JMenuItem cycleAnalysisItem = new JMenuItem("Cycle Analysis...");
+        cycleAnalysisItem.addActionListener(e -> {
+            if (panel.getNodeCount() == 0) {
+                JOptionPane.showMessageDialog(panel,
+                        "Add nodes to analyze cycles.",
+                        "No Nodes", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            Window owner = SwingUtilities.getWindowAncestor(panel);
+            CycleAnalysisDialog dialog = new CycleAnalysisDialog(owner, panel);
+            dialog.setVisible(true);
+        });
+        toolsMenu.add(cycleAnalysisItem);
+
+        JMenuItem clearAnalysisItem = new JMenuItem("Clear Analysis");
+        clearAnalysisItem.addActionListener(e -> panel.clearCycleAnalysis());
+        toolsMenu.add(clearAnalysisItem);
+
         add(fileMenu);
         add(editMenu);
         add(viewMenu);
+        add(toolsMenu);
     }
 }
