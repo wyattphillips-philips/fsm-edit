@@ -4,6 +4,10 @@ import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -20,6 +24,7 @@ public class CycleAnalysisDialog extends JDialog {
     private final JButton prevButton;
     private final JButton nextButton;
     private final JButton analyzeButton;
+    private final JButton copyButton;
     private final JButton clearButton;
     private final JTextArea loopDetailsArea;
     private boolean hasRunAnalysis;
@@ -49,11 +54,16 @@ public class CycleAnalysisDialog extends JDialog {
         loopDetailsArea.setWrapStyleWord(true);
         loopDetailsArea.setEditable(false);
         loopDetailsArea.setFocusable(false);
+        loopDetailsArea.setMargin(new Insets(6, 6, 6, 6));
         Color inactive = UIManager.getColor("TextArea.inactiveBackground");
         if (inactive != null) {
             loopDetailsArea.setBackground(inactive);
         }
         loopDetailsArea.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+        copyButton = new JButton("Copy");
+        copyButton.addActionListener(e -> copyLoopDetails());
+        copyButton.setEnabled(false);
 
         clearButton = new JButton("Clear");
         clearButton.addActionListener(e -> clearAnalysis());
@@ -80,6 +90,7 @@ public class CycleAnalysisDialog extends JDialog {
         loopPanel.add(loopScroll, BorderLayout.CENTER);
 
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actionPanel.add(copyButton);
         actionPanel.add(clearButton);
         actionPanel.add(closeButton);
 
@@ -202,6 +213,7 @@ public class CycleAnalysisDialog extends JDialog {
             clearButton.setEnabled(hasRunAnalysis);
             statusLabel.setText("Add nodes to analyze cycles.");
             loopDetailsArea.setText("");
+            updateCopyButtonState();
             return;
         }
 
@@ -211,6 +223,7 @@ public class CycleAnalysisDialog extends JDialog {
             clearButton.setEnabled(hasRunAnalysis);
             statusLabel.setText("Click a node in the graph to choose a start point.");
             loopDetailsArea.setText("");
+            updateCopyButtonState();
             return;
         }
 
@@ -234,6 +247,21 @@ public class CycleAnalysisDialog extends JDialog {
             loopDetailsArea.setText("");
         }
         loopDetailsArea.setCaretPosition(0);
+        updateCopyButtonState();
+    }
+
+    private void copyLoopDetails() {
+        String text = loopDetailsArea.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(new StringSelection(text), null);
+    }
+
+    private void updateCopyButtonState() {
+        String text = loopDetailsArea.getText();
+        copyButton.setEnabled(text != null && !text.isEmpty());
     }
 
     private String describeCycle(List<Edge> cycle) {
