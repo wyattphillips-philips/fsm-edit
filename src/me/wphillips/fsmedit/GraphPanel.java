@@ -14,9 +14,12 @@ import java.awt.Cursor;
 import java.awt.Stroke;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 
 public class GraphPanel extends JPanel {
     /** Maximum pixel width for edge text before wrapping occurs. */
@@ -42,6 +45,16 @@ public class GraphPanel extends JPanel {
     private final java.util.List<Edge> clipboardEdges = new java.util.ArrayList<>();
     private int clipboardCenterX;
     private int clipboardCenterY;
+
+    /** Listeners notified when the user selects a node. */
+    private final List<NodeSelectionListener> nodeSelectionListeners = new ArrayList<>();
+
+    /** Detected cycles from the most recent analysis. */
+    private final List<List<Edge>> cycleAnalysisLoops = new ArrayList<>();
+    /** Index of the currently highlighted cycle. */
+    private int currentCycleIndex = -1;
+    /** Edge IDs that belong to the currently highlighted cycle. */
+    private final Set<String> highlightedCycleEdgeIds = new HashSet<>();
 
     /** Current zoom level. */
     private double scale = 1.0;
@@ -197,6 +210,7 @@ public class GraphPanel extends JPanel {
                                 dragStart.clear();
                             }
                             selectedEdge = null;
+                            fireNodeSelection(hit);
                             repaint();
                         }
                     } else {
@@ -407,6 +421,34 @@ public class GraphPanel extends JPanel {
         });
     }
 
+    /** Listener notified when a node is selected via mouse click. */
+    public interface NodeSelectionListener {
+        void nodeSelected(Node node);
+    }
+
+    /** Register a listener for node selection events. */
+    public void addNodeSelectionListener(NodeSelectionListener listener) {
+        if (listener != null && !nodeSelectionListeners.contains(listener)) {
+            nodeSelectionListeners.add(listener);
+        }
+    }
+
+    /** Remove a previously registered node selection listener. */
+    public void removeNodeSelectionListener(NodeSelectionListener listener) {
+        nodeSelectionListeners.remove(listener);
+    }
+
+    /** Notify listeners about a node selection. */
+    private void fireNodeSelection(Node node) {
+        if (nodeSelectionListeners.isEmpty()) {
+            return;
+        }
+        java.util.List<NodeSelectionListener> listeners = new ArrayList<>(nodeSelectionListeners);
+        for (NodeSelectionListener listener : listeners) {
+            listener.nodeSelected(node);
+        }
+    }
+
     public void setPropertiesPanel(PropertiesPanel panel) {
         this.propertiesPanel = panel;
         if (panel != null) {
@@ -416,6 +458,13 @@ public class GraphPanel extends JPanel {
 
     public void addNode(Node node) {
         nodes.add(node);
+    }
+
+    /**
+     * Get an immutable view of the nodes currently in the graph.
+     */
+    public List<Node> getNodes() {
+        return Collections.unmodifiableList(nodes);
     }
 
     /**
@@ -446,6 +495,160 @@ public class GraphPanel extends JPanel {
      */
     public int getEdgeCount() {
         return edges.size();
+    }
+
+    /**
+     * Find all directed cycles reachable from the provided start node.
+     */
+    public List<List<Edge>> findCyclesFrom(Node startNode) {
+        if (startNode == null || !nodes.contains(startNode)) {
+            return Collections.emptyList();
+        }
+        Map<Node, List<Edge>> adjacency = new HashMap<>();
+        for (Edge edge : edges) {
+            adjacency.computeIfAbsent(edge.getFrom(), k -> new ArrayList<>()).add(edge);
+        }
+        if (!adjacency.containsKey(startNode)) {
+            return Collections.emptyList();
+        }
+        List<List<Edge>> loops = new ArrayList<>();
+        List<Node> nodeStack = new ArrayList<>();
+        List<Edge> edgeStack = new ArrayList<>();
+        Set<Node> onStack = new HashSet<>();
+        Set<String> seenCycles = new HashSet<>();
+        findCyclesDepthFirst(startNode, adjacency, nodeStack, edgeStack,
+                onStack, seenCycles, loops);
+        return loops;
+    }
+
+    private void findCyclesDepthFirst(Node node, Map<Node, List<Edge>> adjacency,
+            List<Node> nodeStack, List<Edge> edgeStack, Set<Node> onStack,
+            Set<String> seenCycles, List<List<Edge>> loops) {
+        nodeStack.add(node);
+        onStack.add(node);
+        for (Edge edge : adjacency.getOrDefault(node, Collections.emptyList())) {
+            Node next = edge.getTo();
+            edgeStack.add(edge);
+            if (!onStack.contains(next)) {
+                findCyclesDepthFirst(next, adjacency, nodeStack, edgeStack,
+                        onStack, seenCycles, loops);
+            } else {
+                int idx = nodeStack.indexOf(next);
+                if (idx != -1) {
+                    List<Edge> cycle = new ArrayList<>();
+                    for (int i = idx; i < edgeStack.size(); i++) {
+                        cycle.add(edgeStack.get(i));
+                    }
+                    if (!cycle.isEmpty()) {
+                        String key = canonicalCycleKey(cycle);
+                        if (seenCycles.add(key)) {
+                            loops.add(new ArrayList<>(cycle));
+                        }
+                    }
+                }
+            }
+            edgeStack.remove(edgeStack.size() - 1);
+        }
+        nodeStack.remove(nodeStack.size() - 1);
+        onStack.remove(node);
+    }
+
+    private String canonicalCycleKey(List<Edge> cycle) {
+        if (cycle.isEmpty()) {
+            return "";
+        }
+        List<String> ids = new ArrayList<>();
+        for (Edge edge : cycle) {
+            ids.add(edge.getId());
+        }
+        int n = ids.size();
+        String best = null;
+        for (int i = 0; i < n; i++) {
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < n; j++) {
+                if (j > 0) {
+                    sb.append("->");
+                }
+                sb.append(ids.get((i + j) % n));
+            }
+            String candidate = sb.toString();
+            if (best == null || candidate.compareTo(best) < 0) {
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Store the detected cycles and highlight the first one, if present.
+     */
+    public void setCycleAnalysis(List<List<Edge>> loops) {
+        cycleAnalysisLoops.clear();
+        currentCycleIndex = -1;
+        if (loops != null) {
+            for (List<Edge> loop : loops) {
+                cycleAnalysisLoops.add(new ArrayList<>(loop));
+            }
+        }
+        if (!cycleAnalysisLoops.isEmpty()) {
+            currentCycleIndex = 0;
+        }
+        updateHighlightedEdges();
+        repaint();
+    }
+
+    /**
+     * Clear any stored cycle analysis results and remove highlights.
+     */
+    public void clearCycleAnalysis() {
+        cycleAnalysisLoops.clear();
+        currentCycleIndex = -1;
+        updateHighlightedEdges();
+        repaint();
+    }
+
+    /**
+     * Update which cycle is currently highlighted.
+     */
+    public void setCurrentCycleIndex(int index) {
+        if (cycleAnalysisLoops.isEmpty()) {
+            currentCycleIndex = -1;
+        } else {
+            currentCycleIndex = Math.max(0,
+                    Math.min(index, cycleAnalysisLoops.size() - 1));
+        }
+        updateHighlightedEdges();
+        repaint();
+    }
+
+    /**
+     * Get the number of cycles stored from the most recent analysis.
+     */
+    public int getCycleAnalysisCount() {
+        return cycleAnalysisLoops.size();
+    }
+
+    /**
+     * Get the index of the currently highlighted cycle, or -1 if none.
+     */
+    public int getCurrentCycleIndex() {
+        return currentCycleIndex;
+    }
+
+    /**
+     * Get an immutable view of the stored cycle analysis results.
+     */
+    public List<List<Edge>> getCycleAnalysisLoops() {
+        return Collections.unmodifiableList(cycleAnalysisLoops);
+    }
+
+    private void updateHighlightedEdges() {
+        highlightedCycleEdgeIds.clear();
+        if (currentCycleIndex >= 0 && currentCycleIndex < cycleAnalysisLoops.size()) {
+            for (Edge edge : cycleAnalysisLoops.get(currentCycleIndex)) {
+                highlightedCycleEdgeIds.add(edge.getId());
+            }
+        }
     }
 
     /**
@@ -588,7 +791,7 @@ public class GraphPanel extends JPanel {
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
         }
-        repaint();
+        clearCycleAnalysis();
     }
 
     /**
@@ -626,7 +829,7 @@ public class GraphPanel extends JPanel {
         if (propertiesPanel != null) {
             propertiesPanel.setNodes(selectedNodes);
         }
-        repaint();
+        clearCycleAnalysis();
     }
 
     /**
@@ -711,17 +914,21 @@ public class GraphPanel extends JPanel {
         g2.setColor(Color.BLACK);
         for (Edge e : edges) {
             if (e != editingEdge) {
-                Stroke old = g2.getStroke();
-                if (e == selectedEdge) {
+                Stroke oldStroke = g2.getStroke();
+                Color oldColor = g2.getColor();
+                if (highlightedCycleEdgeIds.contains(e.getId())) {
+                    g2.setColor(Color.MAGENTA);
+                    g2.setStroke(new BasicStroke(3f));
+                } else if (e == selectedEdge) {
                     g2.setColor(Color.RED);
                     g2.setStroke(new BasicStroke(2f));
+                } else {
+                    g2.setColor(Color.BLACK);
                 }
                 drawArrow(g2, e);
                 drawEdgeText(g2, e);
-                if (e == selectedEdge) {
-                    g2.setStroke(old);
-                    g2.setColor(Color.BLACK);
-                }
+                g2.setStroke(oldStroke);
+                g2.setColor(oldColor);
             }
         }
         if ((edgeStart != null || editingEdge != null) && tempEdgeNode != null) {
